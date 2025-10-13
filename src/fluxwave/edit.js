@@ -1,7 +1,9 @@
 /**
  * Block Editor Component
+ * Main editor interface for the Fluxwave audio player block
  * 
  * @package Fluxwave
+ * @since 0.1.0
  */
 
 import { __ } from '@wordpress/i18n';
@@ -12,6 +14,19 @@ import AudioPlayer from './components/AudioPlayer';
 import PlaylistEditor from './components/PlaylistEditor';
 import './editor.scss';
 
+/**
+ * Edit component for the Fluxwave block
+ * 
+ * @param {Object} props - Component props
+ * @param {Object} props.attributes - Block attributes
+ * @param {Array} props.attributes.tracks - Array of track objects
+ * @param {boolean} props.attributes.autoplay - Whether to autoplay
+ * @param {boolean} props.attributes.loop - Whether to loop playlist
+ * @param {string} props.attributes.accentColor - Accent color hex value
+ * @param {Function} props.setAttributes - Function to update block attributes
+ * @returns {JSX.Element} The edit component
+ * @since 0.1.0
+ */
 export default function Edit({ attributes, setAttributes }) {
 	const { tracks, autoplay, loop, accentColor } = attributes;
 	const [viewMode, setViewMode] = useState('editor'); // 'editor' or 'preview'
@@ -21,7 +36,11 @@ export default function Edit({ attributes, setAttributes }) {
 	});
 
 	/**
-	 * Handle tracks change
+	 * Handle tracks change from PlaylistEditor
+	 * 
+	 * @param {Array} newTracks - Updated tracks array
+	 * @returns {void}
+	 * @since 0.1.0
 	 */
 	const handleTracksChange = (newTracks) => {
 		setAttributes({ tracks: newTracks });

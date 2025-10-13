@@ -1,8 +1,10 @@
 /**
  * Frontend Script
  * Initializes the Fluxwave player on the frontend
+ * Handles multiple player instances and provides security validation
  * 
  * @package Fluxwave
+ * @since 0.1.0
  */
 
 import { createRoot } from '@wordpress/element';
@@ -15,6 +17,10 @@ const rootInstances = new Map();
 
 /**
  * Initialize all Fluxwave players on the page
+ * Scans for all player blocks and initializes them with proper configuration
+ * 
+ * @returns {void}
+ * @since 0.1.0
  */
 function initPlayers() {
 	const playerBlocks = document.querySelectorAll('.fluxwave-player-block');

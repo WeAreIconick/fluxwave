@@ -1,8 +1,10 @@
 <?php
 /**
  * Frontend Rendering Template
+ * Renders the Fluxwave audio player block on the frontend with comprehensive security validation
  * 
  * @package Fluxwave
+ * @since 0.1.0
  * @see https://github.com/WordPress/gutenberg/blob/trunk/docs/reference-guides/block-api/block-metadata.md#render
  */
 

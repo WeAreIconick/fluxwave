@@ -1,14 +1,31 @@
 /**
  * Track List Component
  * Simple list of tracks without drag-and-drop functionality
+ * Renders track items with proper state management
  * 
  * @package Fluxwave
+ * @since 0.1.0
  */
 
 import { __ } from '@wordpress/i18n';
 import { memo } from '@wordpress/element';
 import TrackItem from './TrackItem';
 
+/**
+ * TrackList component for displaying a list of tracks
+ * 
+ * @param {Object} props - Component props
+ * @param {Array} props.tracks - Array of track objects
+ * @param {Function} props.onRemove - Callback to remove track
+ * @param {string|number} props.activeTrackId - ID of currently active track
+ * @param {Function} props.onSelectTrack - Callback to select track
+ * @param {Function} props.onUpdateArtwork - Callback to update track artwork
+ * @param {Function} props.onUpdateTrack - Callback to update track metadata
+ * @param {Function} props.onMoveUp - Callback to move track up
+ * @param {Function} props.onMoveDown - Callback to move track down
+ * @returns {JSX.Element} The track list component
+ * @since 0.1.0
+ */
 const TrackList = memo(({ tracks, onRemove, activeTrackId, onSelectTrack, onUpdateArtwork, onUpdateTrack, onMoveUp, onMoveDown }) => {
 	// Empty state
 	if (tracks.length === 0) {

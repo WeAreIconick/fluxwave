@@ -1,8 +1,10 @@
 /**
  * Playlist Editor Component
- * Manage tracks in the block editor
+ * Manage tracks in the block editor with full CRUD operations
+ * Handles media selection, track management, and playlist organization
  * 
  * @package Fluxwave
+ * @since 0.1.0
  */
 
 import { useState } from '@wordpress/element';
@@ -11,6 +13,15 @@ import { Button } from '@wordpress/components';
 import { MediaUpload, MediaUploadCheck } from '@wordpress/block-editor';
 import TrackList from './TrackList';
 
+/**
+ * PlaylistEditor component for managing the entire playlist
+ * 
+ * @param {Object} props - Component props
+ * @param {Array} props.tracks - Array of track objects
+ * @param {Function} props.onChange - Callback when tracks change
+ * @returns {JSX.Element} The playlist editor component
+ * @since 0.1.0
+ */
 const PlaylistEditor = ({ tracks, onChange }) => {
 	const [selectedTrackId, setSelectedTrackId] = useState(null);
 

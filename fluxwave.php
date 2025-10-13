@@ -32,7 +32,7 @@ define( 'FLUXWAVE_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
  * @see https://make.wordpress.org/core/2024/10/17/new-block-type-registration-apis-to-improve-performance-in-wordpress-6-7/
  * @return void
  */
-function fluxwave_fluxwave_block_init() {
+function fluxwave_register_block_types() {
 	/**
 	 * Registers the block(s) metadata from the `blocks-manifest.php` and registers the block type(s)
 	 * based on the registered block metadata.
@@ -76,7 +76,7 @@ function fluxwave_fluxwave_block_init() {
 		}
 	}
 }
-add_action( 'init', 'fluxwave_fluxwave_block_init' );
+add_action( 'init', 'fluxwave_register_block_types' );
 
 /**
  * Security: Add nonce to admin scripts for CSRF protection
@@ -85,7 +85,7 @@ add_action( 'init', 'fluxwave_fluxwave_block_init' );
  * @since 0.1.0
  * @return void
  */
-function fluxwave_add_admin_nonce() {
+function fluxwave_add_admin_nonce_script() {
 	if ( is_admin() && current_user_can( 'edit_posts' ) ) {
 		wp_add_inline_script(
 			'wp-blocks',
@@ -94,10 +94,15 @@ function fluxwave_add_admin_nonce() {
 		);
 	}
 }
-add_action( 'admin_enqueue_scripts', 'fluxwave_add_admin_nonce' );
+add_action( 'admin_enqueue_scripts', 'fluxwave_add_admin_nonce_script' );
 
 // Load custom post types
 require_once FLUXWAVE_PLUGIN_DIR . 'includes/post-types.php';
 
 // Load REST API endpoints
 require_once FLUXWAVE_PLUGIN_DIR . 'includes/rest-api.php';
+
+// Load unit tests in debug mode
+if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+	require_once FLUXWAVE_PLUGIN_DIR . 'tests/test-fluxwave.php';
+}

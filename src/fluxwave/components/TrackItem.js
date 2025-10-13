@@ -1,8 +1,9 @@
 /**
  * Track Item Component
- * Individual track item with reorder buttons
+ * Individual track item with reorder buttons, metadata editing, and artwork management
  * 
  * @package Fluxwave
+ * @since 0.1.0
  */
 
 import { __ } from '@wordpress/i18n';
@@ -10,6 +11,24 @@ import { Button, TextControl } from '@wordpress/components';
 import { MediaUpload } from '@wordpress/block-editor';
 import { useState } from '@wordpress/element';
 
+/**
+ * TrackItem component for displaying and managing individual tracks
+ * 
+ * @param {Object} props - Component props
+ * @param {Object} props.track - Track object with id, url, title, artist, album, artwork, duration
+ * @param {number} props.index - Track index in playlist
+ * @param {boolean} props.isActive - Whether this track is currently active
+ * @param {boolean} props.isFirst - Whether this is the first track
+ * @param {boolean} props.isLast - Whether this is the last track
+ * @param {Function} props.onRemove - Callback to remove track
+ * @param {Function} props.onSelect - Callback to select track
+ * @param {Function} props.onUpdateArtwork - Callback to update track artwork
+ * @param {Function} props.onUpdateTrack - Callback to update track metadata
+ * @param {Function} props.onMoveUp - Callback to move track up
+ * @param {Function} props.onMoveDown - Callback to move track down
+ * @returns {JSX.Element} The track item component
+ * @since 0.1.0
+ */
 const TrackItem = ({ 
 	track, 
 	index, 

@@ -12,6 +12,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /**
  * Register REST API routes
+ * 
+ * @since 0.1.0
+ * @return void
  */
 function fluxwave_register_rest_routes() {
 	// Get audio file metadata
@@ -167,9 +170,11 @@ function fluxwave_track_rate_limit_violation( $ip ) {
 
 /**
  * Get audio file metadata
+ * Retrieves and validates audio file information with comprehensive error handling
  *
- * @param WP_REST_Request $request Request object.
- * @return WP_REST_Response|WP_Error
+ * @param WP_REST_Request $request Request object containing the audio file ID.
+ * @return WP_REST_Response|WP_Error Response object with audio metadata or error.
+ * @since 0.1.0
  */
 function fluxwave_get_audio_metadata( $request ) {
 	// Rate limiting: 60 requests per minute per IP
