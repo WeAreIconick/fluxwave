@@ -7,10 +7,13 @@
 
 import { Howl, Howler } from 'howler';
 
+// Global singleton pattern to prevent multiple instances
+let globalHowlerInstance = null;
+
 // Initialize global Howler settings immediately when module loads
 if (typeof Howler !== 'undefined') {
-	// Set a very large HTML5 pool size to prevent exhaustion
-	Howler.html5PoolSize = 500; // Increased from 200 to 500
+	// Set a reasonable HTML5 pool size
+	Howler.html5PoolSize = 50; // Reasonable size, not too large
 	
 	// Enable auto-unlock for better resource management
 	Howler.autoUnlock = true;
@@ -20,12 +23,12 @@ if (typeof Howler !== 'undefined') {
 		Howler._unload();
 	}
 	
-	// Set up aggressive cleanup
+	// Set up periodic cleanup every 30 seconds
 	setInterval(() => {
 		if (typeof Howler !== 'undefined' && typeof Howler._unload === 'function') {
 			Howler._unload();
 		}
-	}, 10000); // Every 10 seconds instead of 30
+	}, 30000);
 }
 
 class HowlerPlayer {
@@ -33,10 +36,11 @@ class HowlerPlayer {
 		this.sound = null;
 		this.isDestroyed = false;
 		this.loadPromise = null;
+		this.currentUrl = null;
 		
 		// Ensure global settings are applied (redundant but safe)
 		if (typeof Howler !== 'undefined') {
-			Howler.html5PoolSize = 500;
+			Howler.html5PoolSize = 50;
 			Howler.autoUnlock = true;
 		}
 	}
@@ -87,33 +91,27 @@ class HowlerPlayer {
 				return;
 			}
 
+			// If we already have a sound for this URL, reuse it
+			if (this.sound && this.currentUrl === url) {
+				if (callbacks.onLoad) callbacks.onLoad();
+				resolve();
+				return;
+			}
+
 			// Clean up existing sound completely and immediately
 			this._cleanupCurrentSound();
 
-			// Check pool availability before creating new sound
-			if (typeof Howler !== 'undefined' && Howler._html5Pool) {
-				const poolUsage = Howler._html5Pool.length;
-				if (poolUsage >= Howler.html5PoolSize * 0.7) { // More aggressive threshold
-					console.warn('Fluxwave: HTML5 Audio Pool getting full, forcing cleanup');
-					Howler._unload();
-				}
-			}
-			
-			// Additional cleanup before creating new sound
-			if (typeof Howler !== 'undefined' && typeof Howler._unload === 'function') {
-				Howler._unload();
-			}
-
-			// Create new Howl instance with better resource management
+			// Create new Howl instance with proper resource management
 			try {
 				this.sound = new Howl({
 					src: [url],
-					html5: true, // Enable streaming for large files
+					html5: false, // Use Web Audio API instead of HTML5 to avoid pool issues
 					preload: true, // Preload metadata
 					format: ['mp3', 'aac', 'opus', 'webm', 'ogg', 'wav', 'flac'],
 					pool: 1, // Limit to 1 instance per Howl
 					onload: () => {
 						if (!this.isDestroyed) {
+							this.currentUrl = url;
 							if (callbacks.onLoad) callbacks.onLoad();
 							resolve();
 						}
@@ -163,6 +161,7 @@ class HowlerPlayer {
 				console.warn('Error cleaning up previous sound:', error);
 			}
 			this.sound = null;
+			this.currentUrl = null;
 		}
 	}
 
@@ -310,10 +309,6 @@ class HowlerPlayer {
 			try {
 				// Unload all sounds to free HTML5 audio elements
 				Howler._unload();
-				// Force garbage collection if available
-				if (typeof Howler._html5Pool !== 'undefined') {
-					Howler._html5Pool = [];
-				}
 			} catch (error) {
 				console.warn('Error during global Howler cleanup:', error);
 			}
