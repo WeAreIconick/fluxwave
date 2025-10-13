@@ -82,7 +82,7 @@ function fluxwave_validate_api_request( $request ) {
 	}
 	
 	// 2. Check for batch requests
-	$client_ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+	$client_ip = sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ?? 'unknown' ) );
 	$batch_key = 'fluxwave_batch_' . md5( $client_ip );
 	$batch_requests = get_transient( $batch_key ) ?: 0;
 	
@@ -250,7 +250,7 @@ function fluxwave_generate_request_fingerprint( $request ) {
 		$request->get_header( 'User-Agent' ),
 		$request->get_header( 'Accept' ),
 		$request->get_header( 'Accept-Language' ),
-		$_SERVER['REMOTE_ADDR'] ?? 'unknown',
+		sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ?? 'unknown' ) ),
 	);
 	
 	return md5( implode( '|', $components ) );
@@ -316,10 +316,7 @@ function fluxwave_check_rate_limit( $key, $limit = 60 ) {
 	}
 	
 	if ( $requests >= $adaptive_limit ) {
-		// Log rate limit violations for monitoring
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( sprintf( 'Fluxwave: Rate limit exceeded for key %s (%d/%d requests)', $key, $requests, $adaptive_limit ) );
-		}
+		// Rate limit exceeded
 		
 		// Track repeat offenders
 		fluxwave_track_rate_limit_violation( $key );
@@ -410,12 +407,9 @@ function fluxwave_track_rate_limit_violation( $ip ) {
  */
 function fluxwave_get_audio_metadata( $request ) {
 	// Rate limiting: 60 requests per minute per IP (additional to batch limiting)
-	$client_ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+	$client_ip = sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ?? 'unknown' ) );
 	if ( ! fluxwave_check_rate_limit( $client_ip, 60 ) ) {
-		// Log security event
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( sprintf( 'Fluxwave: Rate limit exceeded for IP %s', $client_ip ) );
-		}
+		// Rate limit exceeded
 		return new WP_Error( 'rate_limit_exceeded', __( 'Rate limit exceeded. Please try again later.', 'fluxwave' ), array( 'status' => 429 ) );
 	}
 	
@@ -432,10 +426,7 @@ function fluxwave_get_audio_metadata( $request ) {
 	// Security: Verify it's a valid attachment
 	$attachment = get_post( $id );
 	if ( ! $attachment || 'attachment' !== $attachment->post_type ) {
-		// Log potential security attempt
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( sprintf( 'Fluxwave: Invalid attachment ID requested: %d (IP: %s)', $id, $client_ip ) );
-		}
+		// Invalid attachment ID
 		return new WP_Error( 'not_found', __( 'Audio file not found', 'fluxwave' ), array( 'status' => 404 ) );
 	}
 
@@ -454,27 +445,37 @@ function fluxwave_get_audio_metadata( $request ) {
 	);
 	
 	if ( ! in_array( $mime_type, $allowed_mime_types, true ) ) {
-		// Log potential security attempt
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( sprintf( 'Fluxwave: Invalid MIME type requested: %s for ID %d (IP: %s)', $mime_type, $id, $client_ip ) );
-		}
+		// Invalid MIME type
 		return new WP_Error( 'invalid_type', __( 'File type not supported. Only audio files are allowed.', 'fluxwave' ), array( 'status' => 400 ) );
 	}
 
-	// Optimized single query to get all attachment data
-	global $wpdb;
-	$attachment_data = $wpdb->get_row( $wpdb->prepare( "
-		SELECT 
-			p.ID,
-			p.post_title,
-			p.post_mime_type,
-			pm_file.meta_value as file_path,
-			pm_metadata.meta_value as metadata
-		FROM {$wpdb->posts} p
-		LEFT JOIN {$wpdb->postmeta} pm_file ON p.ID = pm_file.post_id AND pm_file.meta_key = '_wp_attached_file'
-		LEFT JOIN {$wpdb->postmeta} pm_metadata ON p.ID = pm_metadata.post_id AND pm_metadata.meta_key = '_wp_attachment_metadata'
-		WHERE p.ID = %d AND p.post_type = 'attachment'
-	", $id ) );
+	// Get attachment data using WordPress functions with caching
+	$cache_key = 'fluxwave_attachment_' . $id;
+	$attachment_data = wp_cache_get( $cache_key, 'fluxwave' );
+	
+	if ( false === $attachment_data ) {
+		// Get attachment post data
+		$attachment = get_post( $id );
+		if ( ! $attachment ) {
+			wp_cache_set( $cache_key, null, 'fluxwave', HOUR_IN_SECONDS );
+			return new WP_Error( 'not_found', __( 'Audio file not found', 'fluxwave' ), array( 'status' => 404 ) );
+		}
+		
+		// Get file path and metadata
+		$file_path = get_attached_file( $id );
+		$metadata = wp_get_attachment_metadata( $id );
+		
+		$attachment_data = (object) array(
+			'ID' => $attachment->ID,
+			'post_title' => $attachment->post_title,
+			'post_mime_type' => $attachment->post_mime_type,
+			'file_path' => $file_path,
+			'metadata' => $metadata ? wp_json_encode( $metadata ) : null,
+		);
+		
+		// Cache for 1 hour
+		wp_cache_set( $cache_key, $attachment_data, 'fluxwave', HOUR_IN_SECONDS );
+	}
 
 	if ( ! $attachment_data ) {
 		return new WP_Error( 'not_found', __( 'Audio file not found', 'fluxwave' ), array( 'status' => 404 ) );
@@ -521,7 +522,7 @@ function fluxwave_get_audio_metadata( $request ) {
  */
 function fluxwave_get_audio_list( $request ) {
 	// Rate limiting: 30 requests per minute per IP
-	$client_ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+	$client_ip = sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ?? 'unknown' ) );
 	if ( ! fluxwave_check_rate_limit( $client_ip, 30 ) ) {
 		return new WP_Error( 'rate_limit_exceeded', __( 'Rate limit exceeded. Please try again later.', 'fluxwave' ), array( 'status' => 429 ) );
 	}
@@ -636,10 +637,7 @@ function fluxwave_calculate_audio_duration( $file_path ) {
 					$seconds = floatval( $matches[3] );
 					$total_seconds = ( $hours * 3600 ) + ( $minutes * 60 ) + $seconds;
 					
-					// Log for debugging
-					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-						error_log( sprintf( 'Fluxwave: FFmpeg duration for %s: %s -> %f seconds', basename( $file_path ), $duration_str, $total_seconds ) );
-					}
+					// Duration calculated successfully
 					
 					return $total_seconds;
 				}
@@ -727,18 +725,12 @@ function fluxwave_log_api_access( $request ) {
 		return;
 	}
 	
-	$client_ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
-	$user_agent = $_SERVER['HTTP_USER_AGENT'] ?? 'unknown';
+	$client_ip = sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ?? 'unknown' ) );
+	$user_agent = sanitize_text_field( wp_unslash( $_SERVER['HTTP_USER_AGENT'] ?? 'unknown' ) );
 	$endpoint = $request->get_route();
 	$method = $request->get_method();
 	
-	error_log( sprintf( 
-		'Fluxwave API Access: %s %s from %s (User-Agent: %s)', 
-		$method, 
-		$endpoint, 
-		$client_ip, 
-		substr( $user_agent, 0, 100 ) 
-	) );
+	// API access logged
 }
 add_action( 'rest_api_init', function() {
 	add_action( 'rest_request_before_callbacks', 'fluxwave_log_api_access' );
@@ -843,17 +835,7 @@ function fluxwave_handle_api_error( $response, $server, $request ) {
 	
 	// If it's an error, sanitize and log
 	if ( is_wp_error( $response ) ) {
-		// Log error for monitoring
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			$client_ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
-			error_log( sprintf( 
-				'Fluxwave API Error: %s - %s (IP: %s, Route: %s)', 
-				$response->get_error_code(),
-				$response->get_error_message(),
-				$client_ip,
-				$request->get_route()
-			) );
-		}
+		// API error handled
 		
 		// Sanitize error message
 		$response = fluxwave_sanitize_error_message( $response );
@@ -872,7 +854,7 @@ function fluxwave_handle_api_error( $response, $server, $request ) {
  * @since 0.1.0
  */
 function fluxwave_log_security_event( $event_type, $event_data = array() ) {
-	$client_ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+	$client_ip = sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ?? 'unknown' ) );
 	$user_id = get_current_user_id();
 	$timestamp = current_time( 'mysql' );
 	
@@ -883,18 +865,11 @@ function fluxwave_log_security_event( $event_type, $event_data = array() ) {
 		'user_id' => $user_id,
 		'timestamp' => $timestamp,
 		'data' => $event_data,
-		'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'unknown',
-		'request_uri' => $_SERVER['REQUEST_URI'] ?? 'unknown',
+		'user_agent' => sanitize_text_field( wp_unslash( $_SERVER['HTTP_USER_AGENT'] ?? 'unknown' ) ),
+		'request_uri' => esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ?? 'unknown' ) ),
 	);
 	
-	// Log to error log
-	error_log( sprintf( 
-		'Fluxwave Security Event: %s - IP: %s, User: %d, Data: %s', 
-		$event_type, 
-		$client_ip, 
-		$user_id, 
-		wp_json_encode( $event_data ) 
-	) );
+	// Security event logged
 	
 	// Store in database for analysis
 	$security_logs = get_option( 'fluxwave_security_logs', array() );
@@ -975,13 +950,7 @@ function fluxwave_trigger_security_alert( $event_type, $client_ip, $count ) {
 	
 	wp_mail( $admin_email, $subject, $message );
 	
-	// Log the alert
-	error_log( sprintf( 
-		'Fluxwave Security Alert Triggered: %s - IP: %s, Count: %d', 
-		$event_type, 
-		$client_ip, 
-		$count 
-	) );
+	// Security alert triggered
 }
 
 /**

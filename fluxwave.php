@@ -43,10 +43,7 @@ function fluxwave_register_block_types() {
 	 */
 	if ( function_exists( 'wp_register_block_types_from_metadata_collection' ) ) {
 		$result = wp_register_block_types_from_metadata_collection( __DIR__ . '/build', __DIR__ . '/build/blocks-manifest.php' );
-		// Debug: Log successful registration
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( 'Fluxwave: Registered blocks using wp_register_block_types_from_metadata_collection: ' . print_r( $result, true ) );
-		}
+		// Block registration successful
 		return;
 	}
 
@@ -67,14 +64,7 @@ function fluxwave_register_block_types() {
 	$manifest_data = require __DIR__ . '/build/blocks-manifest.php';
 	foreach ( array_keys( $manifest_data ) as $block_type ) {
 		$registered = register_block_type( __DIR__ . "/build/{$block_type}" );
-		// Debug: Log registration
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			if ( $registered ) {
-				error_log( 'Fluxwave: Successfully registered block: ' . $registered->name );
-			} else {
-				error_log( 'Fluxwave: Failed to register block from: ' . __DIR__ . "/build/{$block_type}" );
-			}
-		}
+		// Block registration completed
 	}
 }
 add_action( 'init', 'fluxwave_register_block_types' );

@@ -1,9 +1,9 @@
-=== Fluxwave - Modern Audio Player Block ===
-Contributors:      Fluxwave Contributors
-Tags:              audio, music, player, playlist, block, gutenberg, howler, streaming
+=== Fluxwave ===
+Contributors:      iconick
+Tags:              audio, music, player, playlist, block
 Requires at least: 6.7
-Tested up to:      6.7
-Stable tag:        0.1.0
+Tested up to:      6.8
+Stable tag:        1.0.0
 Requires PHP:      7.4
 License:           GPL-2.0-or-later
 License URI:       https://www.gnu.org/licenses/gpl-2.0.html
@@ -109,7 +109,7 @@ Yes! Fluxwave works with both block themes and classic themes. It uses WordPress
 
 == Changelog ==
 
-= 0.1.0 - 2025-10-13 =
+= 1.0.0 - 2025-01-15 =
 * Initial release
 * Audio player with playlist management
 * Customizable accent colors
@@ -126,7 +126,7 @@ Yes! Fluxwave works with both block themes and classic themes. It uses WordPress
 
 == Upgrade Notice ==
 
-= 0.1.0 =
+= 1.0.0 =
 Initial release of Fluxwave. A modern, accessible audio player block for WordPress.
 
 == Credits ==
