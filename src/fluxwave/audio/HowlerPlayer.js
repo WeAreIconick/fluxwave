@@ -118,8 +118,20 @@ class HowlerPlayer {
 					},
 					onloaderror: (id, error) => {
 						console.error('Howler load error:', error);
-						if (callbacks.onError) callbacks.onError(error);
-						reject(error);
+						// Provide more specific error messages
+						let errorMessage = 'Failed to load audio file';
+						if (error && typeof error === 'string') {
+							if (error.includes('Decoding audio data failed')) {
+								errorMessage = 'Audio file format not supported or corrupted';
+							} else if (error.includes('404')) {
+								errorMessage = 'Audio file not found';
+							} else if (error.includes('403')) {
+								errorMessage = 'Access denied to audio file';
+							}
+						}
+						const errorObj = new Error(errorMessage);
+						if (callbacks.onError) callbacks.onError(errorObj);
+						reject(errorObj);
 					},
 					onplay: () => {
 						if (!this.isDestroyed && callbacks.onPlay) callbacks.onPlay();
@@ -307,8 +319,10 @@ class HowlerPlayer {
 		// Force cleanup of any remaining resources
 		if (typeof Howler !== 'undefined') {
 			try {
-				// Unload all sounds to free HTML5 audio elements
-				Howler._unload();
+				// Only call _unload if it exists
+				if (typeof Howler._unload === 'function') {
+					Howler._unload();
+				}
 			} catch (error) {
 				console.warn('Error during global Howler cleanup:', error);
 			}

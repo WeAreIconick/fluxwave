@@ -11,7 +11,7 @@ import { useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import { Button } from '@wordpress/components';
 import { MediaUpload, MediaUploadCheck } from '@wordpress/block-editor';
-import TrackList from './TrackList';
+import VirtualizedTrackList from './VirtualizedTrackList';
 
 /**
  * PlaylistEditor component for managing the entire playlist
@@ -191,7 +191,7 @@ const PlaylistEditor = ({ tracks, onChange }) => {
 			</div>
 
 			{/* Track List */}
-			<TrackList
+			<VirtualizedTrackList
 				tracks={tracks}
 				onRemove={handleRemove}
 				activeTrackId={selectedTrackId}
@@ -200,6 +200,8 @@ const PlaylistEditor = ({ tracks, onChange }) => {
 				onUpdateTrack={handleUpdateTrack}
 				onMoveUp={handleMoveUp}
 				onMoveDown={handleMoveDown}
+				height={400}
+				itemHeight={80}
 			/>
 
 		</div>

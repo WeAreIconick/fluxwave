@@ -74,18 +74,13 @@ const TrackItem = ({
 		return `${mins}:${secs.toString().padStart(2, '0')}`;
 	};
 
-	/**
-	 * Handle artwork selection
-	 */
+	// Simple callbacks
 	const handleArtworkSelect = (media) => {
 		if (onUpdateArtwork) {
 			onUpdateArtwork(track.id, media.url);
 		}
 	};
 
-	/**
-	 * Save metadata changes
-	 */
 	const handleSaveMetadata = () => {
 		if (onUpdateTrack) {
 			onUpdateTrack(track.id, {
@@ -96,13 +91,26 @@ const TrackItem = ({
 		setIsEditing(false);
 	};
 
-	/**
-	 * Cancel editing
-	 */
 	const handleCancelEdit = () => {
 		setEditTitle(track.title || '');
 		setEditArtist(track.artist || '');
 		setIsEditing(false);
+	};
+
+	const handleSelect = () => {
+		onSelect(track);
+	};
+
+	const handleRemove = () => {
+		onRemove(track.id);
+	};
+
+	const handleMoveUp = () => {
+		onMoveUp(index);
+	};
+
+	const handleMoveDown = () => {
+		onMoveDown(index);
 	};
 
 	return (

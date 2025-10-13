@@ -1,0 +1,179 @@
+/**
+ * Virtualized Track List Component
+ * Implements virtual scrolling for large playlists (100+ items)
+ * 
+ * @package Fluxwave
+ * @since 0.1.0
+ */
+
+import { __ } from '@wordpress/i18n';
+import { List } from 'react-window';
+import TrackItem from './TrackItem';
+
+/**
+ * VirtualizedTrackList component for displaying large lists of tracks efficiently
+ * 
+ * @param {Object} props - Component props
+ * @param {Array} props.tracks - Array of track objects
+ * @param {Function} props.onRemove - Callback to remove track
+ * @param {string|number} props.activeTrackId - ID of currently active track
+ * @param {Function} props.onSelectTrack - Callback to select track
+ * @param {Function} props.onUpdateArtwork - Callback to update track artwork
+ * @param {Function} props.onUpdateTrack - Callback to update track metadata
+ * @param {Function} props.onMoveUp - Callback to move track up
+ * @param {Function} props.onMoveDown - Callback to move track down
+ * @param {number} props.height - Height of the virtualized list (default: 400)
+ * @param {number} props.itemHeight - Height of each item (default: 80)
+ * @returns {JSX.Element} The virtualized track list component
+ * @since 0.1.0
+ */
+const VirtualizedTrackList = ({ 
+	tracks, 
+	onRemove, 
+	activeTrackId, 
+	onSelectTrack, 
+	onUpdateArtwork, 
+	onUpdateTrack, 
+	onMoveUp, 
+	onMoveDown,
+	height = 400,
+	itemHeight = 80
+}) => {
+	// Empty state
+	if (tracks.length === 0) {
+		return (
+			<div className="fluxwave-track-list-empty py-12 text-center bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+				<svg
+					className="w-12 h-12 mx-auto mb-3 text-gray-400"
+					fill="none"
+					stroke="currentColor"
+					viewBox="0 0 24 24"
+				>
+					<path
+						strokeLinecap="round"
+						strokeLinejoin="round"
+						strokeWidth={1.5}
+						d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
+					/>
+				</svg>
+				<p className="text-gray-600 font-medium">
+					{__('No tracks in playlist', 'fluxwave')}
+				</p>
+				<p className="text-sm text-gray-500 mt-1">
+					{__('Use the "Add Audio Files" button to add tracks', 'fluxwave')}
+				</p>
+			</div>
+		);
+	}
+
+	// Simple item renderer
+	const ItemRenderer = ({ index, style }) => {
+		const track = tracks[index];
+		if (!track) return null;
+
+		return (
+			<div style={style}>
+				<TrackItem
+					key={`track-${track.id}-${index}`}
+					track={track}
+					index={index}
+					isActive={track.id === activeTrackId}
+					isFirst={index === 0}
+					isLast={index === tracks.length - 1}
+					onRemove={onRemove}
+					onSelect={onSelectTrack}
+					onUpdateArtwork={onUpdateArtwork}
+					onUpdateTrack={onUpdateTrack}
+					onMoveUp={onMoveUp}
+					onMoveDown={onMoveDown}
+				/>
+			</div>
+		);
+	};
+
+	// Use virtual scrolling for large lists (50+ items)
+	if (tracks.length >= 50) {
+		try {
+			return (
+				<div className="fluxwave-track-list">
+					{/* Skip link for keyboard users */}
+					<div className="sr-only">
+						<a 
+							href="#transport-controls" 
+							className="skip-link"
+							onClick={(e) => {
+								e.preventDefault();
+								const controls = document.querySelector('#transport-controls');
+								if (controls) {
+									controls.focus();
+									controls.scrollIntoView();
+								}
+							}}
+						>
+							{__('Skip to player controls', 'fluxwave')}
+						</a>
+					</div>
+					
+					<div role="list" aria-label={__('Playlist tracks', 'fluxwave')}>
+						<List
+							height={height}
+							itemCount={tracks.length}
+							itemSize={itemHeight}
+							itemData={tracks}
+							overscanCount={5} // Render 5 extra items for smooth scrolling
+						>
+							{ItemRenderer}
+						</List>
+					</div>
+				</div>
+			);
+		} catch (error) {
+			console.warn('Virtual scrolling failed, falling back to regular rendering:', error);
+			// Fall through to regular rendering
+		}
+	}
+
+	// Fallback to regular rendering for small lists
+	return (
+		<div className="fluxwave-track-list space-y-2">
+			{/* Skip link for keyboard users */}
+			<div className="sr-only">
+				<a 
+					href="#transport-controls" 
+					className="skip-link"
+					onClick={(e) => {
+						e.preventDefault();
+						const controls = document.querySelector('#transport-controls');
+						if (controls) {
+							controls.focus();
+							controls.scrollIntoView();
+						}
+					}}
+				>
+					{__('Skip to player controls', 'fluxwave')}
+				</a>
+			</div>
+			
+			<div role="list" aria-label={__('Playlist tracks', 'fluxwave')}>
+				{tracks.map((track, index) => (
+					<TrackItem
+						key={track.id}
+						track={track}
+						index={index}
+						isActive={track.id === activeTrackId}
+						isFirst={index === 0}
+						isLast={index === tracks.length - 1}
+						onRemove={onRemove}
+						onSelect={onSelectTrack}
+						onUpdateArtwork={onUpdateArtwork}
+						onUpdateTrack={onUpdateTrack}
+						onMoveUp={onMoveUp}
+						onMoveDown={onMoveDown}
+					/>
+				))}
+			</div>
+		</div>
+	);
+};
+
+export default VirtualizedTrackList;

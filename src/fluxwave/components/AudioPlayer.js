@@ -5,7 +5,7 @@
  * @package Fluxwave
  */
 
-import { useEffect, useRef, useState, useCallback } from '@wordpress/element';
+import { useEffect, useRef, useState, useCallback, memo } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import HowlerPlayer from '../audio/HowlerPlayer';
 import usePlayerStore from '../store/playerStore';
@@ -21,7 +21,7 @@ const AudioPlayer = ({ tracks = [], autoplay = false, loop = false, accentColor 
 	const animationFrameRef = useRef(null);
 	const lastUpdateTime = useRef(0);
 
-	// Zustand store - optimized selectors to prevent unnecessary re-renders
+	// Simple selectors to prevent infinite re-renders
 	const currentTrack = usePlayerStore((state) => state.currentTrack);
 	const currentTrackIndex = usePlayerStore((state) => state.currentTrackIndex);
 	const isPlaying = usePlayerStore((state) => state.isPlaying);
@@ -194,7 +194,22 @@ const AudioPlayer = ({ tracks = [], autoplay = false, loop = false, accentColor 
 					console.error('Error loading track:', error);
 					setIsLoading(false);
 					setDuration(0);
-					setError(__('Failed to load audio file', 'fluxwave'));
+					
+					// Provide more specific error messages
+					let errorMessage = 'Failed to load audio file';
+					if (error && error.message) {
+						if (error.message.includes('Decoding audio data failed')) {
+							errorMessage = 'Audio file format not supported or corrupted';
+						} else if (error.message.includes('404')) {
+							errorMessage = 'Audio file not found';
+						} else if (error.message.includes('403')) {
+							errorMessage = 'Access denied to audio file';
+						} else {
+							errorMessage = error.message;
+						}
+					}
+					
+					setError(errorMessage);
 				},
 			});
 
@@ -356,6 +371,26 @@ const AudioPlayer = ({ tracks = [], autoplay = false, loop = false, accentColor 
 			}
 		}
 	}, [repeatMode, handleSeek, handlePlay, nextTrack, setIsPlaying]);
+
+	// Manage animation frame for playback time updates
+	useEffect(() => {
+		if (isPlaying && playerRef.current) {
+			animationFrameRef.current = requestAnimationFrame(updatePlaybackTime);
+		} else {
+			if (animationFrameRef.current) {
+				cancelAnimationFrame(animationFrameRef.current);
+				animationFrameRef.current = null;
+			}
+		}
+
+		// Cleanup function
+		return () => {
+			if (animationFrameRef.current) {
+				cancelAnimationFrame(animationFrameRef.current);
+				animationFrameRef.current = null;
+			}
+		};
+	}, [isPlaying, updatePlaybackTime]);
 
 	// Setup keyboard shortcuts - AFTER all handlers are defined
 	useEffect(() => {

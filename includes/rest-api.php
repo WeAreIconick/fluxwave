@@ -36,6 +36,32 @@ function fluxwave_register_rest_routes() {
 			),
 		)
 	);
+
+	// Get multiple audio files with pagination
+	register_rest_route(
+		'fluxwave/v1',
+		'/audio',
+		array(
+			'methods'             => 'GET',
+			'callback'            => 'fluxwave_get_audio_list',
+			'permission_callback' => 'fluxwave_validate_api_request',
+			'args'                => array(
+				'per_page' => array(
+					'default'           => 20,
+					'sanitize_callback' => function( $param ) {
+						return min( absint( $param ), 100 ); // Max 100 per page
+					},
+				),
+				'page' => array(
+					'default'           => 1,
+					'sanitize_callback' => 'absint',
+				),
+				'search' => array(
+					'sanitize_callback' => 'sanitize_text_field',
+				),
+			),
+		)
+	);
 }
 add_action( 'rest_api_init', 'fluxwave_register_rest_routes' );
 
@@ -435,10 +461,29 @@ function fluxwave_get_audio_metadata( $request ) {
 		return new WP_Error( 'invalid_type', __( 'File type not supported. Only audio files are allowed.', 'fluxwave' ), array( 'status' => 400 ) );
 	}
 
-	// Get attachment metadata
-	$metadata = wp_get_attachment_metadata( $id );
+	// Optimized single query to get all attachment data
+	global $wpdb;
+	$attachment_data = $wpdb->get_row( $wpdb->prepare( "
+		SELECT 
+			p.ID,
+			p.post_title,
+			p.post_mime_type,
+			pm_file.meta_value as file_path,
+			pm_metadata.meta_value as metadata
+		FROM {$wpdb->posts} p
+		LEFT JOIN {$wpdb->postmeta} pm_file ON p.ID = pm_file.post_id AND pm_file.meta_key = '_wp_attached_file'
+		LEFT JOIN {$wpdb->postmeta} pm_metadata ON p.ID = pm_metadata.post_id AND pm_metadata.meta_key = '_wp_attachment_metadata'
+		WHERE p.ID = %d AND p.post_type = 'attachment'
+	", $id ) );
+
+	if ( ! $attachment_data ) {
+		return new WP_Error( 'not_found', __( 'Audio file not found', 'fluxwave' ), array( 'status' => 404 ) );
+	}
+
+	// Parse metadata
+	$metadata = $attachment_data->metadata ? maybe_unserialize( $attachment_data->metadata ) : array();
+	$file_path = $attachment_data->file_path ? wp_upload_dir()['basedir'] . '/' . $attachment_data->file_path : '';
 	$file_url = wp_get_attachment_url( $id );
-	$file_path = get_attached_file( $id );
 
 	// Security: Validate file exists and is readable
 	if ( ! $file_path || ! file_exists( $file_path ) ) {
@@ -472,6 +517,101 @@ function fluxwave_get_audio_metadata( $request ) {
 	set_transient( $cache_key, $data, HOUR_IN_SECONDS );
 
 	return rest_ensure_response( $data );
+}
+
+/**
+ * Get paginated list of audio files
+ * Retrieves audio files with pagination and search support
+ *
+ * @param WP_REST_Request $request Request object containing pagination parameters.
+ * @return WP_REST_Response|WP_Error Response object with paginated audio data or error.
+ * @since 0.1.0
+ */
+function fluxwave_get_audio_list( $request ) {
+	// Rate limiting: 30 requests per minute per IP
+	$client_ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+	if ( ! fluxwave_check_rate_limit( $client_ip, 30 ) ) {
+		return new WP_Error( 'rate_limit_exceeded', __( 'Rate limit exceeded. Please try again later.', 'fluxwave' ), array( 'status' => 429 ) );
+	}
+	
+	$per_page = $request->get_param( 'per_page' );
+	$page = $request->get_param( 'page' );
+	$search = $request->get_param( 'search' );
+	
+	// Performance: Check cache first
+	$cache_key = 'fluxwave_audio_list_' . md5( serialize( array( $per_page, $page, $search ) ) );
+	$cached_data = get_transient( $cache_key );
+	
+	if ( false !== $cached_data ) {
+		return rest_ensure_response( $cached_data );
+	}
+	
+	// Build query args
+	$args = array(
+		'post_type'      => 'attachment',
+		'post_mime_type' => 'audio',
+		'post_status'    => 'inherit',
+		'posts_per_page' => $per_page,
+		'paged'          => $page,
+		'orderby'        => 'date',
+		'order'          => 'DESC',
+	);
+	
+	// Add search if provided
+	if ( $search ) {
+		$args['s'] = $search;
+	}
+	
+	// Get total count for pagination headers
+	$count_args = $args;
+	$count_args['posts_per_page'] = -1;
+	$count_args['fields'] = 'ids';
+	$total_query = new WP_Query( $count_args );
+	$total = $total_query->found_posts;
+	
+	// Get paginated results
+	$query = new WP_Query( $args );
+	$audio_files = array();
+	
+	if ( $query->have_posts() ) {
+		while ( $query->have_posts() ) {
+			$query->the_post();
+			$id = get_the_ID();
+			
+			// Get basic metadata
+			$metadata = wp_get_attachment_metadata( $id );
+			$file_url = wp_get_attachment_url( $id );
+			
+			$audio_files[] = array(
+				'id'       => $id,
+				'title'    => sanitize_text_field( get_the_title() ),
+				'url'      => esc_url_raw( $file_url ),
+				'mime'     => sanitize_mime_type( get_post_mime_type( $id ) ),
+				'duration' => isset( $metadata['length'] ) ? floatval( $metadata['length'] ) : 0,
+			);
+		}
+	}
+	
+	wp_reset_postdata();
+	
+	$response_data = array(
+		'audio_files' => $audio_files,
+		'total'       => $total,
+		'pages'       => ceil( $total / $per_page ),
+		'current_page' => $page,
+		'per_page'    => $per_page,
+	);
+	
+	// Performance: Cache for 5 minutes
+	set_transient( $cache_key, $response_data, 5 * MINUTE_IN_SECONDS );
+	
+	$response = rest_ensure_response( $response_data );
+	
+	// Add pagination headers
+	$response->header( 'X-WP-Total', $total );
+	$response->header( 'X-WP-TotalPages', ceil( $total / $per_page ) );
+	
+	return $response;
 }
 
 /**

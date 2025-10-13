@@ -49,6 +49,8 @@ module.exports = {
 						drop_console: false, // Keep console for debugging
 						drop_debugger: true,
 						pure_funcs: ['console.debug'], // Remove console.debug in production
+						unused: true, // Remove unused code
+						dead_code: true, // Remove dead code
 					},
 					mangle: {
 						safari10: true,
@@ -66,6 +68,8 @@ module.exports = {
 		// the main entry files or explicitly registered as WordPress script dependencies.
 		// Enabling splitChunks causes module resolution failures in the WordPress environment.
 		splitChunks: false,
+		usedExports: true, // Enable tree shaking
+		sideEffects: false, // Mark as side-effect free for better tree shaking
 	},
 	performance: {
 		hints: 'warning',
