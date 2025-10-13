@@ -53,12 +53,6 @@ const PlaylistEditor = ({ tracks, onChange }) => {
 		onChange([...tracks, ...newTracks]);
 	};
 
-	/**
-	 * Handle track reorder
-	 */
-	const handleReorder = (newTracks) => {
-		onChange(newTracks);
-	};
 
 	/**
 	 * Handle track removal
@@ -164,7 +158,6 @@ const PlaylistEditor = ({ tracks, onChange }) => {
 			{/* Track List */}
 			<TrackList
 				tracks={tracks}
-				onReorder={handleReorder}
 				onRemove={handleRemove}
 				activeTrackId={selectedTrackId}
 				onSelectTrack={setSelectedTrackId}
@@ -172,12 +165,6 @@ const PlaylistEditor = ({ tracks, onChange }) => {
 				onUpdateTrack={handleUpdateTrack}
 			/>
 
-			{/* Drag-Drop Hint */}
-			{tracks.length > 1 && (
-				<p className="text-xs text-gray-500 mt-3 text-center">
-					{__('💡 Drag tracks to reorder your playlist', 'fluxwave')}
-				</p>
-			)}
 		</div>
 	);
 };

@@ -1,36 +1,31 @@
 /**
  * Track Item Component
- * Individual draggable track item
+ * Individual track item with reorder buttons
  * 
  * @package Fluxwave
  */
 
-import { useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
 import { __ } from '@wordpress/i18n';
 import { Button, TextControl } from '@wordpress/components';
-import { MediaUpload, MediaUploadCheck } from '@wordpress/block-editor';
+import { MediaUpload } from '@wordpress/block-editor';
 import { useState } from '@wordpress/element';
 
-const TrackItem = ({ track, index, isActive, onRemove, onSelect, onUpdateArtwork, onUpdateTrack }) => {
+const TrackItem = ({ 
+	track, 
+	index, 
+	isActive, 
+	isFirst, 
+	isLast, 
+	onRemove, 
+	onSelect, 
+	onUpdateArtwork, 
+	onUpdateTrack,
+	onMoveUp,
+	onMoveDown
+}) => {
 	const [isEditing, setIsEditing] = useState(false);
 	const [editTitle, setEditTitle] = useState(track.title || '');
 	const [editArtist, setEditArtist] = useState(track.artist || '');
-
-	const {
-		attributes,
-		listeners,
-		setNodeRef,
-		transform,
-		transition,
-		isDragging,
-	} = useSortable({ id: track.id });
-
-	const style = {
-		transform: CSS.Transform.toString(transform),
-		transition,
-		opacity: isDragging ? 0.5 : 1,
-	};
 
 	/**
 	 * Format duration
@@ -75,31 +70,39 @@ const TrackItem = ({ track, index, isActive, onRemove, onSelect, onUpdateArtwork
 
 	return (
 		<div
-			ref={setNodeRef}
-			style={style}
 			className={`fluxwave-track-item rounded-lg border transition-all ${
 				isActive
 					? 'bg-indigo-50 border-indigo-300 shadow-sm'
-					: isDragging
-					? 'bg-gray-100 border-gray-300'
 					: 'bg-white border-gray-200 hover:border-gray-300 hover:shadow-sm'
 			}`}
 		>
 			<div className="flex items-center gap-3 p-3">
-				{/* Drag Handle */}
-				<div
-					{...attributes}
-					{...listeners}
-					className="flex-shrink-0 cursor-grab active:cursor-grabbing p-1 text-gray-400 hover:text-gray-600"
-				>
-					<svg
-						className="w-5 h-5"
-						fill="currentColor"
-						viewBox="0 0 20 20"
-						xmlns="http://www.w3.org/2000/svg"
-					>
-						<path d="M7 2a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 2zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 8zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 14zm6-8a2 2 0 1 0-.001-4.001A2 2 0 0 0 13 6zm0 2a2 2 0 1 0 .001 4.001A2 2 0 0 0 13 8zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 13 14z" />
-					</svg>
+				{/* Reorder Buttons */}
+				<div className="flex-shrink-0 flex flex-col gap-1">
+					<Button
+						icon="arrow-up-alt2"
+						size="small"
+						onClick={(e) => {
+							e.stopPropagation();
+							onMoveUp(track.id);
+						}}
+						disabled={isFirst}
+						label={__('Move up', 'fluxwave')}
+						showTooltip={true}
+						className="!min-w-0 !w-8 !h-8"
+					/>
+					<Button
+						icon="arrow-down-alt2"
+						size="small"
+						onClick={(e) => {
+							e.stopPropagation();
+							onMoveDown(track.id);
+						}}
+						disabled={isLast}
+						label={__('Move down', 'fluxwave')}
+						showTooltip={true}
+						className="!min-w-0 !w-8 !h-8"
+					/>
 				</div>
 
 				{/* Track Number */}
@@ -169,12 +172,16 @@ const TrackItem = ({ track, index, isActive, onRemove, onSelect, onUpdateArtwork
 							value={editTitle}
 							onChange={setEditTitle}
 							className="mb-0"
+							__next40pxDefaultSize={true}
+							__nextHasNoMarginBottom={true}
 						/>
 						<TextControl
 							label={__('Artist', 'fluxwave')}
 							value={editArtist}
 							onChange={setEditArtist}
 							className="mb-0"
+							__next40pxDefaultSize={true}
+							__nextHasNoMarginBottom={true}
 						/>
 						<div className="flex gap-2 pt-1">
 							<Button

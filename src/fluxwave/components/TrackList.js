@@ -1,70 +1,15 @@
 /**
  * Track List Component
- * Sortable list of tracks with drag-drop and virtual scrolling for large playlists
+ * Simple list of tracks without drag-and-drop functionality
  * 
  * @package Fluxwave
  */
 
-import {
-	DndContext,
-	closestCenter,
-	KeyboardSensor,
-	PointerSensor,
-	useSensor,
-	useSensors,
-} from '@dnd-kit/core';
-import {
-	arrayMove,
-	SortableContext,
-	sortableKeyboardCoordinates,
-	verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
 import { __ } from '@wordpress/i18n';
-import { memo, useMemo } from '@wordpress/element';
-import { List } from 'react-window';
+import { memo } from '@wordpress/element';
 import TrackItem from './TrackItem';
 
-// Use virtual scrolling for playlists with 50+ tracks
-const VIRTUAL_SCROLL_THRESHOLD = 50;
-
-const TrackList = memo(({ tracks, onReorder, onRemove, activeTrackId, onSelectTrack, onUpdateArtwork, onUpdateTrack }) => {
-	const useVirtualScroll = tracks.length >= VIRTUAL_SCROLL_THRESHOLD;
-	// Memoize sensors to prevent recreation on every render
-	const sensors = useMemo(() => 
-		[
-			useSensor(PointerSensor, {
-				activationConstraint: {
-					distance: 8, // 8px movement required to start drag
-				},
-			}),
-			useSensor(KeyboardSensor, {
-				coordinateGetter: sortableKeyboardCoordinates,
-			})
-		],
-	[]);
-	
-	const sensorsList = useSensors(...sensors);
-	
-	// Memoize track IDs array
-	const trackIds = useMemo(() => tracks.map((t) => t.id), [tracks]);
-
-	/**
-	 * Handle drag end
-	 */
-	const handleDragEnd = (event) => {
-		const { active, over } = event;
-
-		if (active.id !== over?.id) {
-			const oldIndex = tracks.findIndex((track) => track.id === active.id);
-			const newIndex = tracks.findIndex((track) => track.id === over.id);
-
-			if (oldIndex !== -1 && newIndex !== -1) {
-				const newTracks = arrayMove(tracks, oldIndex, newIndex);
-				onReorder(newTracks);
-			}
-		}
-	};
-
+const TrackList = memo(({ tracks, onRemove, activeTrackId, onSelectTrack, onUpdateArtwork, onUpdateTrack }) => {
 	// Empty state
 	if (tracks.length === 0) {
 		return (
@@ -92,11 +37,9 @@ const TrackList = memo(({ tracks, onReorder, onRemove, activeTrackId, onSelectTr
 		);
 	}
 
-	// Render function for virtual list
-	const Row = ({ index, style }) => {
-		const track = tracks[index];
-		return (
-			<div style={style}>
+	return (
+		<div className="fluxwave-track-list space-y-2">
+			{tracks.map((track, index) => (
 				<TrackItem
 					key={track.id}
 					track={track}
@@ -107,54 +50,8 @@ const TrackList = memo(({ tracks, onReorder, onRemove, activeTrackId, onSelectTr
 					onUpdateArtwork={onUpdateArtwork}
 					onUpdateTrack={onUpdateTrack}
 				/>
-			</div>
-		);
-	};
-
-	return (
-		<DndContext
-			sensors={sensorsList}
-			collisionDetection={closestCenter}
-			onDragEnd={handleDragEnd}
-		>
-			<SortableContext
-				items={trackIds}
-				strategy={verticalListSortingStrategy}
-			>
-				{useVirtualScroll ? (
-					// Virtual scrolling for large playlists (50+ tracks)
-					<div className="fluxwave-track-list">
-						<div className="mb-2 text-xs text-gray-500 text-center">
-							{__('Large playlist - using optimized scrolling', 'fluxwave')}
-						</div>
-						<List
-							height={600}
-							itemCount={tracks.length}
-							itemSize={80}
-							width="100%"
-						>
-							{Row}
-						</List>
-					</div>
-				) : (
-					// Regular rendering for smaller playlists (<50 tracks)
-					<div className="fluxwave-track-list space-y-2">
-						{tracks.map((track, index) => (
-							<TrackItem
-								key={track.id}
-								track={track}
-								index={index}
-								isActive={track.id === activeTrackId}
-								onRemove={onRemove}
-								onSelect={onSelectTrack}
-								onUpdateArtwork={onUpdateArtwork}
-								onUpdateTrack={onUpdateTrack}
-							/>
-						))}
-					</div>
-				)}
-			</SortableContext>
-		</DndContext>
+			))}
+		</div>
 	);
 });
 

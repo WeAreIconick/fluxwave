@@ -8,6 +8,7 @@
 import { createRoot } from '@wordpress/element';
 import AudioPlayer from './components/AudioPlayer';
 import domReady from '@wordpress/dom-ready';
+import './style.scss';
 
 // Store root instances for cleanup
 const rootInstances = new Map();

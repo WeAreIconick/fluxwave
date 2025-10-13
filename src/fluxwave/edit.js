@@ -6,13 +6,11 @@
 
 import { __ } from '@wordpress/i18n';
 import { useBlockProps, InspectorControls, ColorPalette } from '@wordpress/block-editor';
-import { PanelBody, ToggleControl, Button, ButtonGroup, Spinner } from '@wordpress/components';
-import { useState, Suspense, lazy } from '@wordpress/element';
+import { PanelBody, ToggleControl, Button, ButtonGroup } from '@wordpress/components';
+import { useState } from '@wordpress/element';
 import AudioPlayer from './components/AudioPlayer';
+import PlaylistEditor from './components/PlaylistEditor';
 import './editor.scss';
-
-// Lazy load PlaylistEditor for better initial load performance
-const PlaylistEditor = lazy(() => import('./components/PlaylistEditor'));
 
 export default function Edit({ attributes, setAttributes }) {
 	const { tracks, autoplay, loop, accentColor } = attributes;
@@ -99,21 +97,15 @@ export default function Edit({ attributes, setAttributes }) {
 					)}
 				</div>
 
-				{/* Editor View */}
-				{viewMode === 'editor' && (
-					<div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-						<Suspense fallback={
-							<div className="flex items-center justify-center py-8">
-								<Spinner />
-							</div>
-						}>
-							<PlaylistEditor
-								tracks={tracks}
-								onChange={handleTracksChange}
-							/>
-						</Suspense>
-					</div>
-				)}
+			{/* Editor View */}
+			{viewMode === 'editor' && (
+				<div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+					<PlaylistEditor
+						tracks={tracks}
+						onChange={handleTracksChange}
+					/>
+				</div>
+			)}
 
 				{/* Preview View */}
 				{viewMode === 'preview' && tracks.length > 0 && (

@@ -30,4 +30,9 @@ registerBlockType( metadata.name, {
 	 * @see ./edit.js
 	 */
 	edit: Edit,
+	/**
+	 * Dynamic block - rendered via PHP
+	 * @see ./render.php
+	 */
+	save: () => null,
 } );

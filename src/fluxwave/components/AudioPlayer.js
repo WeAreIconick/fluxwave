@@ -41,44 +41,12 @@ const AudioPlayer = ({ tracks = [], autoplay = false, loop = false, accentColor 
 	const nextTrack = usePlayerStore((state) => state.nextTrack);
 	const previousTrack = usePlayerStore((state) => state.previousTrack);
 
-	// Initialize Howler on mount
+	// Initialize Howler player on mount (only once)
 	useEffect(() => {
 		playerRef.current = new HowlerPlayer();
 
-		// Accessibility: Add keyboard shortcuts
-		const handleKeyPress = (e) => {
-			// Only handle if not in an input field
-			if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-				return;
-			}
-
-			switch (e.key) {
-				case ' ':
-					e.preventDefault();
-					handlePlayPause();
-					break;
-				case 'ArrowLeft':
-					if (e.shiftKey) {
-						e.preventDefault();
-						handlePrevious();
-					}
-					break;
-				case 'ArrowRight':
-					if (e.shiftKey) {
-						e.preventDefault();
-						handleNext();
-					}
-					break;
-				default:
-					break;
-			}
-		};
-
-		window.addEventListener('keydown', handleKeyPress);
-
 		// Cleanup on unmount
 		return () => {
-			window.removeEventListener('keydown', handleKeyPress);
 			if (animationFrameRef.current) {
 				cancelAnimationFrame(animationFrameRef.current);
 				animationFrameRef.current = null;
@@ -327,6 +295,43 @@ const AudioPlayer = ({ tracks = [], autoplay = false, loop = false, accentColor 
 			}
 		}
 	}, [repeatMode, handleSeek, handlePlay, nextTrack, setIsPlaying]);
+
+	// Setup keyboard shortcuts - AFTER all handlers are defined
+	useEffect(() => {
+		const handleKeyPress = (e) => {
+			// Only handle if not in an input field
+			if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+				return;
+			}
+
+			switch (e.key) {
+				case ' ':
+					e.preventDefault();
+					handlePlayPause();
+					break;
+				case 'ArrowLeft':
+					if (e.shiftKey) {
+						e.preventDefault();
+						handlePrevious();
+					}
+					break;
+				case 'ArrowRight':
+					if (e.shiftKey) {
+						e.preventDefault();
+						handleNext();
+					}
+					break;
+				default:
+					break;
+			}
+		};
+
+		window.addEventListener('keydown', handleKeyPress);
+
+		return () => {
+			window.removeEventListener('keydown', handleKeyPress);
+		};
+	}, [handlePlayPause, handlePrevious, handleNext]); // Now properly depends on handlers
 
 	// Empty state
 	if (tracks.length === 0) {

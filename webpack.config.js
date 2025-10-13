@@ -6,9 +6,39 @@
 
 const defaultConfig = require('@wordpress/scripts/config/webpack.config');
 const TerserPlugin = require('terser-webpack-plugin');
+const DependencyExtractionWebpackPlugin = require('@wordpress/dependency-extraction-webpack-plugin');
 
 module.exports = {
 	...defaultConfig,
+	plugins: defaultConfig.plugins.map((plugin) => {
+		// Replace the default DependencyExtractionWebpackPlugin with a configured one
+		if (plugin.constructor.name === 'DependencyExtractionWebpackPlugin') {
+			return new DependencyExtractionWebpackPlugin({
+				requestToExternal(request) {
+					// Force React and ReactDOM to use WordPress globals
+					if (request === 'react') {
+						return 'React';
+					}
+					if (request === 'react-dom') {
+						return 'ReactDOM';
+					}
+					// Let the plugin handle other WordPress dependencies
+					return undefined;
+				},
+				requestToHandle(request) {
+					// Map React/ReactDOM to WordPress script handles
+					if (request === 'react') {
+						return 'react';
+					}
+					if (request === 'react-dom') {
+						return 'react-dom';
+					}
+					return undefined;
+				},
+			});
+		}
+		return plugin;
+	}),
 	optimization: {
 		...defaultConfig.optimization,
 		minimize: true,
@@ -31,31 +61,17 @@ module.exports = {
 				extractComments: false,
 			}),
 		],
-		splitChunks: {
-			...defaultConfig.optimization.splitChunks,
-			cacheGroups: {
-				...defaultConfig.optimization.splitChunks.cacheGroups,
-				// Split Howler into separate chunk for better caching
-				howler: {
-					test: /[\\/]node_modules[\\/]howler[\\/]/,
-					name: 'howler',
-					chunks: 'all',
-					priority: 20,
-				},
-				// Split DnD Kit into separate chunk
-				dndkit: {
-					test: /[\\/]node_modules[\\/]@dnd-kit[\\/]/,
-					name: 'dndkit',
-					chunks: 'all',
-					priority: 15,
-				},
-			},
-		},
+		// IMPORTANT: Code splitting is disabled because WordPress blocks-manifest registration
+		// doesn't automatically handle split chunks. All dependencies must be bundled into
+		// the main entry files or explicitly registered as WordPress script dependencies.
+		// Enabling splitChunks causes module resolution failures in the WordPress environment.
+		splitChunks: false,
 	},
 	performance: {
 		hints: 'warning',
-		maxEntrypointSize: 300000, // 300KB
-		maxAssetSize: 250000, // 250KB
+		// Increased limits since we're bundling all dependencies
+		maxEntrypointSize: 500000, // 500KB
+		maxAssetSize: 450000, // 450KB
 	},
 };
 
