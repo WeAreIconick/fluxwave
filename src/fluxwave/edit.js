@@ -69,6 +69,29 @@ export default function Edit({ attributes, setAttributes }) {
 					/>
 				</PanelBody>
 
+				<PanelBody title={__('Theme', 'fluxwave')} initialOpen={true}>
+					<ToggleGroupControl
+						label={__('Player Theme', 'fluxwave')}
+						value={attributes.theme || 'light'}
+						onChange={(value) => setAttributes({ theme: value })}
+						__next40pxDefaultSize={true}
+						__nextHasNoMarginBottom={true}
+					>
+						<ToggleGroupControlOption
+							value="light"
+							label={__('Light', 'fluxwave')}
+							__next40pxDefaultSize={true}
+							__nextHasNoMarginBottom={true}
+						/>
+						<ToggleGroupControlOption
+							value="dark"
+							label={__('Dark', 'fluxwave')}
+							__next40pxDefaultSize={true}
+							__nextHasNoMarginBottom={true}
+						/>
+					</ToggleGroupControl>
+				</PanelBody>
+
 				<PanelBody title={__('Accent Color', 'fluxwave')} initialOpen={true}>
 					<ColorPalette
 						value={accentColor}
@@ -135,6 +158,7 @@ export default function Edit({ attributes, setAttributes }) {
 							autoplay={false} // Don't autoplay in editor
 							loop={loop}
 							accentColor={accentColor}
+							theme={attributes.theme || 'light'}
 						/>
 					</div>
 				)}

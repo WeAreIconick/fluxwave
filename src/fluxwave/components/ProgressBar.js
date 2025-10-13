@@ -7,7 +7,7 @@
 
 import { useState, useRef, memo } from '@wordpress/element';
 
-const ProgressBar = memo(({ currentTime = 0, duration = 0, onSeek, accentColor = '#06b6d4' }) => {
+const ProgressBar = memo(({ currentTime = 0, duration = 0, onSeek, accentColor = '#06b6d4', theme = 'light' }) => {
 	const [isDragging, setIsDragging] = useState(false);
 	const [dragTime, setDragTime] = useState(0);
 	const progressBarRef = useRef(null);
@@ -135,7 +135,7 @@ const ProgressBar = memo(({ currentTime = 0, duration = 0, onSeek, accentColor =
 			{/* Time Display */}
 			<div className="flex justify-between text-sm leading-6 font-medium tabular-nums">
 				<div style={{ color: accentColor }}>{formatTime(displayTime)}</div>
-				<div className="text-slate-500">{formatTime(duration)}</div>
+				<div className={`text-sm leading-6 font-medium tabular-nums ${theme === 'dark' ? 'text-white' : 'text-gray-600'}`}>{formatTime(duration)}</div>
 			</div>
 		</div>
 	);

@@ -20,6 +20,7 @@ const TransportControls = memo(({
 	onSkipForward,
 	onSkipBackward,
 	accentColor = '#06b6d4',
+	theme = 'light'
 }) => {
 	const [showCopiedMessage, setShowCopiedMessage] = useState(false);
 	const speedOptions = [0.5, 0.75, 1, 1.25, 1.5, 2];
@@ -64,14 +65,14 @@ const TransportControls = memo(({
 	};
 
 	return (
-		<div className="bg-white text-slate-500 flex items-center relative" role="group" aria-label="Player controls">
+		<div className={`flex items-center relative px-8 py-6 rounded-b-xl ${theme === 'dark' ? 'bg-black text-white' : 'bg-white text-gray-600'}`} role="group" aria-label="Player controls">
 			<div className="flex-auto flex items-center justify-evenly">
 				{/* Share Button */}
 				<div className="relative">
 					<button 
 						type="button" 
 						aria-label={__('Share', 'fluxwave')}
-						className="text-slate-500 transition-colors"
+						className={`transition-colors ${theme === 'dark' ? 'text-white' : 'text-gray-600'}`}
 						onClick={handleShare}
 						onMouseEnter={(e) => e.currentTarget.style.color = accentColor}
 						onMouseLeave={(e) => e.currentTarget.style.color = ''}
@@ -104,7 +105,7 @@ const TransportControls = memo(({
 				{/* Previous Track */}
 				<button 
 					type="button" 
-					className="hidden sm:block lg:hidden xl:block text-slate-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" 
+					className={`hidden sm:block lg:hidden xl:block transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${theme === 'dark' ? 'text-white' : 'text-gray-600'}`}
 					aria-label={__('Previous track', 'fluxwave')}
 					onClick={onPrevious}
 					disabled={!hasPrevious}
@@ -121,7 +122,7 @@ const TransportControls = memo(({
 				<button 
 					type="button" 
 					aria-label={__('Rewind 10 seconds', 'fluxwave')}
-					className="text-slate-500 transition-colors"
+					className={`transition-colors ${theme === 'dark' ? 'text-white' : 'text-gray-600'}`}
 					onClick={onSkipBackward}
 					onMouseEnter={(e) => e.currentTarget.style.color = accentColor}
 					onMouseLeave={(e) => e.currentTarget.style.color = ''}
@@ -136,7 +137,7 @@ const TransportControls = memo(({
 			{/* Play/Pause Button */}
 			<button 
 				type="button" 
-				className="bg-white text-slate-900 flex-none -my-2 mx-auto w-20 h-20 rounded-full border-2 border-slate-200 flex items-center justify-center hover:bg-slate-50 transition-colors" 
+				className={`flex-none -my-2 mx-auto w-20 h-20 rounded-full border-2 flex items-center justify-center transition-colors ${theme === 'dark' ? 'bg-white text-black border-white hover:bg-gray-100' : 'bg-white text-gray-900 border-gray-300 hover:bg-gray-100'}`} 
 				aria-label={isPlaying ? __('Pause', 'fluxwave') : __('Play', 'fluxwave')}
 				onClick={onPlayPause}
 				onMouseEnter={(e) => {
@@ -165,7 +166,7 @@ const TransportControls = memo(({
 				<button 
 					type="button" 
 					aria-label={__('Skip 10 seconds', 'fluxwave')}
-					className="text-slate-500 transition-colors"
+					className={`transition-colors ${theme === 'dark' ? 'text-white' : 'text-gray-600'}`}
 					onClick={onSkipForward}
 					onMouseEnter={(e) => e.currentTarget.style.color = accentColor}
 					onMouseLeave={(e) => e.currentTarget.style.color = ''}
@@ -179,7 +180,7 @@ const TransportControls = memo(({
 				{/* Next Track */}
 				<button 
 					type="button" 
-					className="hidden sm:block lg:hidden xl:block text-slate-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" 
+					className={`hidden sm:block lg:hidden xl:block transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${theme === 'dark' ? 'text-white' : 'text-gray-600'}`} 
 					aria-label={__('Next track', 'fluxwave')}
 					onClick={onNext}
 					disabled={!hasNext}
@@ -195,7 +196,7 @@ const TransportControls = memo(({
 				{/* Speed Control */}
 				<button 
 					type="button" 
-					className="rounded-lg text-xs leading-6 font-semibold px-3 py-2 ring-2 ring-inset ring-slate-500 text-slate-500 hover:bg-slate-100 transition-colors min-h-[44px] min-w-[44px]"
+					className={`rounded-lg text-xs leading-6 font-semibold px-3 py-2 ring-2 ring-inset transition-colors min-h-[44px] min-w-[44px] ${theme === 'dark' ? 'ring-white text-white hover:bg-gray-800' : 'ring-gray-600 text-gray-600 hover:bg-gray-200'}`}
 					onClick={cycleSpeed}
 					aria-label={__('Change playback speed. Current speed:', 'fluxwave') + ' ' + playbackRate + 'x'}
 					aria-describedby="speed-description"

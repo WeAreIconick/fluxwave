@@ -37,6 +37,10 @@
     "loop": {
       "type": "boolean",
       "default": false
+    },
+    "theme": {
+      "type": "string",
+      "default": "light"
     }
   },
   "supports": {

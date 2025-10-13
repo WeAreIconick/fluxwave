@@ -44,6 +44,10 @@ return array(
 			'loop' => array(
 				'type' => 'boolean',
 				'default' => false
+			),
+			'theme' => array(
+				'type' => 'string',
+				'default' => 'light'
 			)
 		),
 		'supports' => array(

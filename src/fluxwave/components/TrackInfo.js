@@ -8,7 +8,7 @@
 import { __ } from '@wordpress/i18n';
 import { memo } from '@wordpress/element';
 
-const TrackInfo = memo(({ track, currentTrackIndex, totalTracks, accentColor = '#06b6d4' }) => {
+const TrackInfo = memo(({ track, currentTrackIndex, totalTracks, accentColor = '#06b6d4', theme = 'light' }) => {
 	if (!track) {
 		return (
 			<div className="text-center py-8">
@@ -27,17 +27,17 @@ const TrackInfo = memo(({ track, currentTrackIndex, totalTracks, accentColor = '
 				alt={track.title || __('Album artwork', 'fluxwave')} 
 				width="88" 
 				height="88" 
-				className="flex-none rounded-lg bg-slate-100" 
+				className={`flex-none rounded-lg ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-200'}`}  
 				loading="lazy" 
 			/>
 			<div className="min-w-0 flex-auto space-y-1 font-semibold">
 				<p className="text-sm leading-6" style={{ color: accentColor }}>
 					<abbr title="Track">Track:</abbr> {String((currentTrackIndex || 0) + 1).padStart(2, '0')}
 				</p>
-				<h2 className="text-slate-500 text-sm leading-6 truncate">
+				<h2 className={`text-sm leading-6 truncate ${theme === 'dark' ? 'text-white' : 'text-gray-600'}`}>
 					{track.artist ? track.artist : (track.album ? `Album: ${track.album}` : __('Unknown Artist', 'fluxwave'))}
 				</h2>
-				<p className="text-slate-900 text-lg">
+				<p className={`text-lg ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
 					{track.title || __('Untitled Track', 'fluxwave')}
 				</p>
 			</div>

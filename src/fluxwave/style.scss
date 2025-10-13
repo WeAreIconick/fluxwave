@@ -29,11 +29,12 @@
 	position: relative;
 	opacity: 1;
 	transition: opacity 0.2s ease-in-out;
-	border: 2px solid var(--accent-color, #06b6d4);
 	border-radius: 1rem;
 	background: white;
 	overflow: hidden;
 	padding: 1.5rem; /* Add more padding all around */
+	
+	/* Theme support - now handled by Tailwind dark: classes */
 }
 
 /* Remove dotted border from abbr elements */

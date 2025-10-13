@@ -14,7 +14,7 @@ import ProgressBar from './ProgressBar';
 import TrackInfo from './TrackInfo';
 import { announceToScreenReader, formatTimeForScreenReader } from '../utils/accessibility';
 
-const AudioPlayer = ({ tracks = [], autoplay = false, loop = false, accentColor = '#06b6d4', onReady }) => {
+const AudioPlayer = ({ tracks = [], autoplay = false, loop = false, accentColor = '#06b6d4', theme = 'light', onReady }) => {
 	const [error, setError] = useState(null);
 	const [isInitialized, setIsInitialized] = useState(false);
 	const playerRef = useRef(null);
@@ -468,13 +468,14 @@ const AudioPlayer = ({ tracks = [], autoplay = false, loop = false, accentColor 
 			aria-live="polite"
 			aria-atomic="false"
 		>
-			<div className="bg-white p-4 pb-6 sm:p-10 sm:pb-8 lg:p-6 xl:p-10 xl:pb-8 space-y-6 sm:space-y-8 lg:space-y-6 xl:space-y-8 items-center">
+			<div className={`p-6 pb-8 sm:p-12 sm:pb-10 lg:p-8 xl:p-12 xl:pb-10 space-y-6 sm:space-y-8 lg:space-y-6 xl:space-y-8 items-center rounded-t-xl ${theme === 'dark' ? 'bg-black' : 'bg-white'}`}>
 				{/* Track Info */}
 				<TrackInfo 
 					track={currentTrack} 
 					currentTrackIndex={currentTrackIndex}
 					totalTracks={tracks.length}
 					accentColor={accentColor}
+					theme={theme}
 				/>
 				
 				{/* Screen reader status */}
@@ -489,6 +490,7 @@ const AudioPlayer = ({ tracks = [], autoplay = false, loop = false, accentColor 
 					duration={duration}
 					onSeek={handleSeek}
 					accentColor={accentColor}
+					theme={theme}
 				/>
 			</div>
 
@@ -506,6 +508,7 @@ const AudioPlayer = ({ tracks = [], autoplay = false, loop = false, accentColor 
 					onSkipForward={handleSkipForward}
 					onSkipBackward={handleSkipBackward}
 					accentColor={accentColor}
+					theme={theme}
 				/>
 			</div>
 
@@ -514,7 +517,7 @@ const AudioPlayer = ({ tracks = [], autoplay = false, loop = false, accentColor 
 				<div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10 rounded-xl" role="status" aria-live="polite">
 					<div className="text-center">
 						<div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: accentColor }} aria-hidden="true"></div>
-						<p className="mt-2 text-sm text-slate-600">{__('Loading...', 'fluxwave')}</p>
+						<p className={`mt-2 text-sm ${theme === 'dark' ? 'text-white' : 'text-gray-600'}`}>{__('Loading...', 'fluxwave')}</p>
 					</div>
 				</div>
 			)}
@@ -526,7 +529,7 @@ const AudioPlayer = ({ tracks = [], autoplay = false, loop = false, accentColor 
 						<svg className="w-12 h-12 mx-auto mb-3 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
 						</svg>
-						<p className="text-sm text-slate-900 font-medium mb-2">{error}</p>
+						<p className={`text-sm font-medium mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{error}</p>
 						<button
 							onClick={() => {
 								setError(null);
@@ -534,7 +537,7 @@ const AudioPlayer = ({ tracks = [], autoplay = false, loop = false, accentColor 
 									loadTrack(currentTrack);
 								}
 							}}
-							className="px-4 py-2 text-sm rounded-lg bg-slate-100 hover:bg-slate-200 transition-colors"
+							className={`px-4 py-2 text-sm rounded-lg transition-colors ${theme === 'dark' ? 'bg-gray-800 hover:bg-gray-700' : 'bg-gray-200 hover:bg-gray-300'}`}
 						>
 							{__('Try Again', 'fluxwave')}
 						</button>

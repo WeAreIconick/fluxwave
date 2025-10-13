@@ -89,6 +89,7 @@ function initPlayers() {
 						autoplay={config.autoplay === true}
 						loop={config.loop === true}
 						accentColor={config.accentColor || '#06b6d4'}
+						theme={config.theme || 'light'}
 						onReady={() => {
 							console.log('Fluxwave: React component ready'); // Debug log
 							// Remove loading class and add loaded class for smooth transition
