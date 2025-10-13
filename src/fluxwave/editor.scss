@@ -1,0 +1,12 @@
+/**
+ * Editor styles for Fluxwave block
+ */
+
+@use "tailwindcss";
+
+.wp-block-fluxwave-fluxwave {
+	border: 2px dashed #d1d5db;
+	padding: 1rem;
+	border-radius: 0.5rem;
+	min-height: 200px;
+}

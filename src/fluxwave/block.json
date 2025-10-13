@@ -1,0 +1,50 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "fluxwave/fluxwave",
+	"version": "0.1.0",
+	"title": "Fluxwave",
+	"category": "media",
+	"icon": "format-audio",
+	"description": "A modern audio player with playlist management and playback controls.",
+	"keywords": ["audio", "music", "player", "playlist"],
+	"example": {},
+	"attributes": {
+		"tracks": {
+			"type": "array",
+			"default": [],
+			"items": {
+				"type": "object"
+			}
+		},
+		"currentTrackIndex": {
+			"type": "number",
+			"default": 0
+		},
+		"accentColor": {
+			"type": "string",
+			"default": "#06b6d4"
+		},
+		"autoplay": {
+			"type": "boolean",
+			"default": false
+		},
+		"loop": {
+			"type": "boolean",
+			"default": false
+		}
+	},
+	"supports": {
+		"html": false,
+		"align": false,
+		"color": false,
+		"typography": false,
+		"customClassName": false
+	},
+	"textdomain": "fluxwave",
+	"editorScript": "file:./index.js",
+	"editorStyle": "file:./index.css",
+	"style": "file:./style-index.css",
+	"render": "file:./render.php",
+	"viewScript": "file:./view.js"
+}
