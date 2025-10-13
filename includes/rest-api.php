@@ -505,14 +505,6 @@ function fluxwave_get_audio_metadata( $request ) {
 		'filesize' => $file_size,
 	);
 
-	// Add audio-specific metadata if available
-	if ( isset( $metadata['length_formatted'] ) ) {
-		$data['duration_formatted'] = sanitize_text_field( $metadata['length_formatted'] );
-	}
-	if ( isset( $metadata['length'] ) ) {
-		$data['duration'] = floatval( $metadata['length'] );
-	}
-
 	// Performance: Cache for 1 hour
 	set_transient( $cache_key, $data, HOUR_IN_SECONDS );
 
@@ -587,7 +579,6 @@ function fluxwave_get_audio_list( $request ) {
 				'title'    => sanitize_text_field( get_the_title() ),
 				'url'      => esc_url_raw( $file_url ),
 				'mime'     => sanitize_mime_type( get_post_mime_type( $id ) ),
-				'duration' => isset( $metadata['length'] ) ? floatval( $metadata['length'] ) : 0,
 			);
 		}
 	}
@@ -612,6 +603,99 @@ function fluxwave_get_audio_list( $request ) {
 	$response->header( 'X-WP-TotalPages', ceil( $total / $per_page ) );
 	
 	return $response;
+}
+
+/**
+ * Calculate audio duration using PHP's built-in capabilities
+ * 
+ * @param string $file_path Path to audio file
+ * @return float Duration in seconds, 0 if unable to calculate
+ * @since 0.1.0
+ */
+function fluxwave_calculate_audio_duration( $file_path ) {
+	if ( ! file_exists( $file_path ) ) {
+		return 0;
+	}
+	
+	// Try using FFmpeg if available (most reliable)
+	if ( function_exists( 'exec' ) ) {
+		$ffmpeg_path = fluxwave_find_ffmpeg();
+		if ( $ffmpeg_path ) {
+			// Use a more reliable FFmpeg command to get duration
+			$command = escapeshellarg( $ffmpeg_path ) . ' -i ' . escapeshellarg( $file_path ) . ' -f null - 2>&1 | grep "Duration"';
+			$output = array();
+			$return_var = 0;
+			exec( $command, $output, $return_var );
+			
+			if ( $return_var === 0 && ! empty( $output[0] ) ) {
+				$duration_str = trim( $output[0] );
+				// Parse HH:MM:SS.mmm format from FFmpeg output
+				if ( preg_match( '/Duration: (\d+):(\d+):(\d+\.?\d*)/', $duration_str, $matches ) ) {
+					$hours = intval( $matches[1] );
+					$minutes = intval( $matches[2] );
+					$seconds = floatval( $matches[3] );
+					$total_seconds = ( $hours * 3600 ) + ( $minutes * 60 ) + $seconds;
+					
+					// Log for debugging
+					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+						error_log( sprintf( 'Fluxwave: FFmpeg duration for %s: %s -> %f seconds', basename( $file_path ), $duration_str, $total_seconds ) );
+					}
+					
+					return $total_seconds;
+				}
+			}
+		}
+	}
+	
+	// Fallback: Try using PHP's getID3 if available
+	if ( class_exists( 'getID3' ) ) {
+		try {
+			$getID3 = new getID3;
+			$file_info = $getID3->analyze( $file_path );
+			if ( isset( $file_info['playtime_seconds'] ) && $file_info['playtime_seconds'] > 0 ) {
+				return floatval( $file_info['playtime_seconds'] );
+			}
+		} catch ( Exception $e ) {
+			// Silent fail
+		}
+	}
+	
+	// Last resort: Try using file size estimation for MP3 (very rough)
+	$file_size = filesize( $file_path );
+	$mime_type = wp_check_filetype( $file_path )['type'];
+	
+	if ( strpos( $mime_type, 'mp3' ) !== false && $file_size > 0 ) {
+		// Very rough estimation: assume 128kbps bitrate
+		// This is just a fallback and will be inaccurate
+		$estimated_duration = ( $file_size * 8 ) / ( 128 * 1000 );
+		return $estimated_duration;
+	}
+	
+	return 0;
+}
+
+/**
+ * Find FFmpeg executable path
+ * 
+ * @return string|false FFmpeg path or false if not found
+ * @since 0.1.0
+ */
+function fluxwave_find_ffmpeg() {
+	$possible_paths = array(
+		'ffmpeg',
+		'/usr/bin/ffmpeg',
+		'/usr/local/bin/ffmpeg',
+		'/opt/homebrew/bin/ffmpeg', // macOS Homebrew
+		'C:\ffmpeg\bin\ffmpeg.exe', // Windows
+	);
+	
+	foreach ( $possible_paths as $path ) {
+		if ( is_executable( $path ) ) {
+			return $path;
+		}
+	}
+	
+	return false;
 }
 
 /**

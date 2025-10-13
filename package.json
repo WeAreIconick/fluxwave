@@ -1,8 +1,8 @@
 {
 	"name": "fluxwave",
-	"version": "0.1.0",
+	"version": "1.0.0",
 	"description": "A cutting-edge WordPress music streaming block with playlist management and playback controls.",
-	"author": "Fluxwave Contributors",
+	"author": "iconick",
 	"license": "GPL-2.0-or-later",
 	"main": "build/index.js",
 	"keywords": [

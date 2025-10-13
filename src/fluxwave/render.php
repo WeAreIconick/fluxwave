@@ -64,6 +64,40 @@ $wrapper_attributes = get_block_wrapper_attributes(
 ?>
 
 <div <?php echo $wrapper_attributes; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped by get_block_wrapper_attributes() ?>>
+	<style>
+		/* Critical CSS to prevent FOUC */
+		.fluxwave-player-block {
+			opacity: 1;
+			transition: opacity 0.3s ease-in-out;
+		}
+		.fluxwave-player-block.loading {
+			opacity: 1;
+		}
+		.fluxwave-player-block.loaded {
+			opacity: 1;
+		}
+		.fluxwave-audio-player {
+			position: relative;
+			opacity: 1;
+			transition: opacity 0.5s ease-in-out;
+		}
+		.fluxwave-player-container {
+			position: relative;
+		}
+		/* Hide only the skeleton loader when React is ready */
+		.fluxwave-player-container.react-ready .fluxwave-skeleton {
+			opacity: 0;
+			pointer-events: none;
+			transition: opacity 0.3s ease-in-out;
+		}
+		@keyframes pulse {
+			0%, 100% { opacity: 1; }
+			50% { opacity: 0.5; }
+		}
+		.animate-pulse {
+			animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+		}
+	</style>
 	<?php if ( empty( $tracks ) ) : ?>
 		<div class="fluxwave-empty-state p-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 text-center">
 			<svg class="w-12 h-12 mx-auto mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -76,8 +110,8 @@ $wrapper_attributes = get_block_wrapper_attributes(
 		<!-- Player will be initialized by view.js -->
 		<div class="fluxwave-player-container">
 			<!-- Skeleton loader that matches the final player layout -->
-			<div class="fluxwave-audio-player w-full" style="--accent-color: <?php echo esc_attr( $accent_color ); ?>">
-				<div class="bg-white border-slate-100 border-b rounded-t-xl p-4 pb-6 sm:p-10 sm:pb-8 lg:p-6 xl:p-10 xl:pb-8 space-y-6 sm:space-y-8 lg:space-y-6 xl:space-y-8 items-center">
+			<div class="fluxwave-audio-player fluxwave-skeleton w-full opacity-100" style="--accent-color: <?php echo esc_attr( $accent_color ); ?>">
+				<div class="bg-white p-4 pb-6 sm:p-10 sm:pb-8 lg:p-6 xl:p-10 xl:pb-8 space-y-6 sm:space-y-8 lg:space-y-6 xl:space-y-8 items-center">
 					<!-- Track Info Skeleton -->
 					<div class="flex items-center space-x-4">
 						<div class="flex-shrink-0">
@@ -101,7 +135,7 @@ $wrapper_attributes = get_block_wrapper_attributes(
 				</div>
 				
 				<!-- Transport Controls Skeleton -->
-				<div class="bg-slate-50 text-slate-500 rounded-b-xl flex items-center relative">
+				<div class="bg-white text-slate-500 flex items-center relative">
 					<div class="flex-auto flex items-center justify-evenly">
 						<div class="w-6 h-6 bg-gray-200 rounded animate-pulse"></div>
 						<div class="w-6 h-6 bg-gray-200 rounded animate-pulse"></div>

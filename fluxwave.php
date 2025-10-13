@@ -2,10 +2,11 @@
 /**
  * Plugin Name:       Fluxwave
  * Description:       A modern, accessible WordPress audio player block with playlist management, customizable design, and advanced playback controls.
- * Version:           0.1.0
+ * Version:           1.0.0
  * Requires at least: 6.7
  * Requires PHP:      7.4
- * Author:            Fluxwave Contributors
+ * Author:            iconick
+ * Author URI:         https://iconick.io
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain:       fluxwave
@@ -18,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Define plugin constants
-define( 'FLUXWAVE_VERSION', '0.1.0' );
+define( 'FLUXWAVE_VERSION', '1.0.0' );
 define( 'FLUXWAVE_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'FLUXWAVE_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
@@ -27,7 +28,7 @@ define( 'FLUXWAVE_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
  * Behind the scenes, it also registers all assets so they can be enqueued
  * through the block editor in the corresponding context.
  *
- * @since 0.1.0
+ * @since 1.0.0
  * @see https://make.wordpress.org/core/2025/03/13/more-efficient-block-type-registration-in-6-8/
  * @see https://make.wordpress.org/core/2024/10/17/new-block-type-registration-apis-to-improve-performance-in-wordpress-6-7/
  * @return void
@@ -82,7 +83,7 @@ add_action( 'init', 'fluxwave_register_block_types' );
  * Security: Add nonce to admin scripts for CSRF protection
  * Only adds nonce for users with edit_posts capability
  *
- * @since 0.1.0
+ * @since 1.0.0
  * @return void
  */
 function fluxwave_add_admin_nonce_script() {

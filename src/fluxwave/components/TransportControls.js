@@ -64,7 +64,7 @@ const TransportControls = memo(({
 	};
 
 	return (
-		<div className="bg-slate-50 text-slate-500 rounded-b-xl flex items-center relative" role="group" aria-label="Player controls">
+		<div className="bg-white text-slate-500 flex items-center relative" role="group" aria-label="Player controls">
 			<div className="flex-auto flex items-center justify-evenly">
 				{/* Share Button */}
 				<div className="relative">
@@ -136,9 +136,17 @@ const TransportControls = memo(({
 			{/* Play/Pause Button */}
 			<button 
 				type="button" 
-				className="bg-white text-slate-900 flex-none -my-2 mx-auto w-20 h-20 rounded-full ring-1 ring-slate-900/5 shadow-md flex items-center justify-center hover:bg-slate-50 transition-colors" 
+				className="bg-white text-slate-900 flex-none -my-2 mx-auto w-20 h-20 rounded-full border-2 border-slate-200 flex items-center justify-center hover:bg-slate-50 transition-colors" 
 				aria-label={isPlaying ? __('Pause', 'fluxwave') : __('Play', 'fluxwave')}
 				onClick={onPlayPause}
+				onMouseEnter={(e) => {
+					e.currentTarget.style.backgroundColor = accentColor;
+					e.currentTarget.style.color = 'white';
+				}}
+				onMouseLeave={(e) => {
+					e.currentTarget.style.backgroundColor = '';
+					e.currentTarget.style.color = '';
+				}}
 			>
 				{isPlaying ? (
 					<svg width="30" height="32" fill="currentColor">
@@ -191,6 +199,16 @@ const TransportControls = memo(({
 					onClick={cycleSpeed}
 					aria-label={__('Change playback speed. Current speed:', 'fluxwave') + ' ' + playbackRate + 'x'}
 					aria-describedby="speed-description"
+					onMouseEnter={(e) => {
+						e.currentTarget.style.backgroundColor = accentColor;
+						e.currentTarget.style.color = 'white';
+						e.currentTarget.style.borderColor = accentColor;
+					}}
+					onMouseLeave={(e) => {
+						e.currentTarget.style.backgroundColor = '';
+						e.currentTarget.style.color = '';
+						e.currentTarget.style.borderColor = '';
+					}}
 				>
 					{playbackRate}x
 				</button>

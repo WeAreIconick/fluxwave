@@ -30,25 +30,6 @@ const PlaylistEditor = ({ tracks, onChange }) => {
 	 */
 	const handleSelectMedia = (media) => {
 		const newTracks = media.map((item) => {
-			// Try to get duration from various possible properties
-			let duration = 0;
-			
-			// WordPress stores duration in meta.length_formatted (string like "3:45")
-			// or meta.length (seconds as number or string)
-			if (item.meta?.length_formatted) {
-				// Parse "3:45" format
-				const parts = String(item.meta.length_formatted).split(':');
-				if (parts.length === 2) {
-					const mins = parseInt(parts[0], 10) || 0;
-					const secs = parseInt(parts[1], 10) || 0;
-					duration = (mins * 60) + secs;
-				}
-			} else if (item.meta?.length) {
-				duration = parseFloat(item.meta.length);
-			} else if (item.fileLength) {
-				duration = parseFloat(item.fileLength);
-			}
-			
 			return {
 				id: item.id,
 				url: item.url,
@@ -57,7 +38,7 @@ const PlaylistEditor = ({ tracks, onChange }) => {
 				album: item.meta?.album || '',
 				artwork: item.sizes?.thumbnail?.url || item.icon,
 				artworkId: null,
-				duration: !isNaN(duration) && isFinite(duration) && duration > 0 ? duration : 0,
+				duration: 0, // Will be calculated by Howler.js when loaded
 			};
 		});
 

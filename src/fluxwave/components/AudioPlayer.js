@@ -461,14 +461,14 @@ const AudioPlayer = ({ tracks = [], autoplay = false, loop = false, accentColor 
 
 	return (
 		<div 
-			className={`fluxwave-audio-player w-full ${isInitialized ? 'opacity-100' : 'opacity-0'} transition-opacity duration-300`}
+			className={`fluxwave-audio-player w-full ${isInitialized ? 'opacity-100' : 'opacity-0'} transition-opacity duration-500`}
 			style={{ '--accent-color': accentColor }}
 			role="region"
 			aria-label={currentTrack?.title ? `Audio player - ${currentTrack.title}` : 'Audio player'}
 			aria-live="polite"
 			aria-atomic="false"
 		>
-			<div className="bg-white border-slate-100 border-b rounded-t-xl p-4 pb-6 sm:p-10 sm:pb-8 lg:p-6 xl:p-10 xl:pb-8 space-y-6 sm:space-y-8 lg:space-y-6 xl:space-y-8 items-center">
+			<div className="bg-white p-4 pb-6 sm:p-10 sm:pb-8 lg:p-6 xl:p-10 xl:pb-8 space-y-6 sm:space-y-8 lg:space-y-6 xl:space-y-8 items-center">
 				{/* Track Info */}
 				<TrackInfo 
 					track={currentTrack} 

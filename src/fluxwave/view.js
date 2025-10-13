@@ -80,19 +80,29 @@ function initPlayers() {
 			const root = createRoot(container);
 			rootInstances.set(container, root);
 			
-			root.render(
-				<AudioPlayer
-					tracks={config.tracks || []}
-					autoplay={config.autoplay === true}
-					loop={config.loop === true}
-					accentColor={config.accentColor || '#06b6d4'}
-					onReady={() => {
-						// Remove loading class and add loaded class for smooth transition
-						block.classList.remove('loading');
-						block.classList.add('loaded');
-					}}
-				/>
-			);
+			// Add a small delay to ensure smooth transition
+			setTimeout(() => {
+				console.log('Fluxwave: Rendering React component'); // Debug log
+				root.render(
+					<AudioPlayer
+						tracks={config.tracks || []}
+						autoplay={config.autoplay === true}
+						loop={config.loop === true}
+						accentColor={config.accentColor || '#06b6d4'}
+						onReady={() => {
+							console.log('Fluxwave: React component ready'); // Debug log
+							// Remove loading class and add loaded class for smooth transition
+							block.classList.remove('loading');
+							block.classList.add('loaded');
+							// Add react-ready class to hide skeleton after a delay
+							setTimeout(() => {
+								console.log('Fluxwave: Hiding skeleton'); // Debug log
+								container.classList.add('react-ready');
+							}, 200); // Wait for React component to be fully visible
+						}}
+					/>
+				);
+			}, 50); // Small delay to ensure smooth transition
 		} catch (error) {
 			console.error('Fluxwave: Error initializing player', error);
 		}
