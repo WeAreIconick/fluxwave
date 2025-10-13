@@ -41,11 +41,12 @@ class HowlerPlayer {
 	}
 
 	/**
-	 * Load an audio file
+	 * Load an audio file with comprehensive error handling
 	 * 
 	 * @param {string} url - Audio file URL
 	 * @param {Object} callbacks - Event callbacks
-	 * @returns {Promise} Resolves when audio is loaded
+	 * @returns {Promise<boolean>} Resolves when audio is loaded
+	 * @throws {Error} If URL is invalid or player is destroyed
 	 */
 	load(url, callbacks = {}) {
 		return new Promise((resolve, reject) => {

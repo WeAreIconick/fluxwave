@@ -30,12 +30,22 @@ foreach ( $tracks as $track ) {
 	);
 }
 
-// Prepare data for frontend script
+// Prepare data for frontend script with additional sanitization
 $player_data = array(
-	'tracks'      => $sanitized_tracks,
-	'autoplay'    => $autoplay,
-	'loop'        => $loop,
-	'accentColor' => $accent_color,
+	'tracks'      => array_map( function( $track ) {
+		return array(
+			'id'       => absint( $track['id'] ),
+			'url'      => esc_url_raw( $track['url'] ),
+			'title'    => sanitize_text_field( $track['title'] ),
+			'artist'   => sanitize_text_field( $track['artist'] ),
+			'album'    => sanitize_text_field( $track['album'] ),
+			'artwork'  => esc_url_raw( $track['artwork'] ),
+			'duration' => floatval( $track['duration'] ),
+		);
+	}, $sanitized_tracks ),
+	'autoplay'    => (bool) $autoplay,
+	'loop'        => (bool) $loop,
+	'accentColor' => sanitize_hex_color( $accent_color ),
 );
 
 // Generate unique ID for this block instance

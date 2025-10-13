@@ -27,8 +27,10 @@ define( 'FLUXWAVE_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
  * Behind the scenes, it also registers all assets so they can be enqueued
  * through the block editor in the corresponding context.
  *
+ * @since 0.1.0
  * @see https://make.wordpress.org/core/2025/03/13/more-efficient-block-type-registration-in-6-8/
  * @see https://make.wordpress.org/core/2024/10/17/new-block-type-registration-apis-to-improve-performance-in-wordpress-6-7/
+ * @return void
  */
 function fluxwave_fluxwave_block_init() {
 	/**
@@ -78,9 +80,13 @@ add_action( 'init', 'fluxwave_fluxwave_block_init' );
 
 /**
  * Security: Add nonce to admin scripts for CSRF protection
+ * Only adds nonce for users with edit_posts capability
+ *
+ * @since 0.1.0
+ * @return void
  */
 function fluxwave_add_admin_nonce() {
-	if ( is_admin() ) {
+	if ( is_admin() && current_user_can( 'edit_posts' ) ) {
 		wp_add_inline_script(
 			'wp-blocks',
 			'window.fluxwaveNonce = ' . wp_json_encode( wp_create_nonce( 'fluxwave_admin' ) ) . ';',

@@ -9,7 +9,7 @@ import { __ } from '@wordpress/i18n';
 import { memo } from '@wordpress/element';
 import TrackItem from './TrackItem';
 
-const TrackList = memo(({ tracks, onRemove, activeTrackId, onSelectTrack, onUpdateArtwork, onUpdateTrack }) => {
+const TrackList = memo(({ tracks, onRemove, activeTrackId, onSelectTrack, onUpdateArtwork, onUpdateTrack, onMoveUp, onMoveDown }) => {
 	// Empty state
 	if (tracks.length === 0) {
 		return (
@@ -45,10 +45,14 @@ const TrackList = memo(({ tracks, onRemove, activeTrackId, onSelectTrack, onUpda
 					track={track}
 					index={index}
 					isActive={track.id === activeTrackId}
+					isFirst={index === 0}
+					isLast={index === tracks.length - 1}
 					onRemove={onRemove}
 					onSelect={onSelectTrack}
 					onUpdateArtwork={onUpdateArtwork}
 					onUpdateTrack={onUpdateTrack}
+					onMoveUp={onMoveUp}
+					onMoveDown={onMoveDown}
 				/>
 			))}
 		</div>

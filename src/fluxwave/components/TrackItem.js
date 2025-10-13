@@ -28,6 +28,24 @@ const TrackItem = ({
 	const [editArtist, setEditArtist] = useState(track.artist || '');
 
 	/**
+	 * Custom SVG Arrow Up Icon
+	 */
+	const ArrowUpIcon = () => (
+		<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+			<path d="M8 3.5L3.5 8h2.5v4.5h4V8h2.5L8 3.5z"/>
+		</svg>
+	);
+
+	/**
+	 * Custom SVG Arrow Down Icon
+	 */
+	const ArrowDownIcon = () => (
+		<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+			<path d="M8 12.5L12.5 8H10V3.5H6V8H3.5L8 12.5z"/>
+		</svg>
+	);
+
+	/**
 	 * Format duration
 	 */
 	const formatDuration = (seconds) => {
@@ -80,7 +98,7 @@ const TrackItem = ({
 				{/* Reorder Buttons */}
 				<div className="flex-shrink-0 flex flex-col gap-1">
 					<Button
-						icon="arrow-up-alt2"
+						icon={ArrowUpIcon}
 						size="small"
 						onClick={(e) => {
 							e.stopPropagation();
@@ -92,7 +110,7 @@ const TrackItem = ({
 						className="!min-w-0 !w-8 !h-8"
 					/>
 					<Button
-						icon="arrow-down-alt2"
+						icon={ArrowDownIcon}
 						size="small"
 						onClick={(e) => {
 							e.stopPropagation();

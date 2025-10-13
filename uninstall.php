@@ -11,6 +11,11 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 	exit;
 }
 
+// Additional security check - ensure we're actually uninstalling
+if ( ! current_user_can( 'delete_plugins' ) ) {
+	exit;
+}
+
 // Cleanup tasks:
 // - Block attributes are stored in post_content (cleaned up by WordPress automatically)
 // - No custom database tables created

@@ -108,6 +108,30 @@ const PlaylistEditor = ({ tracks, onChange }) => {
 		}
 	};
 
+	/**
+	 * Handle move track up
+	 */
+	const handleMoveUp = (trackId) => {
+		const trackIndex = tracks.findIndex(track => track.id === trackId);
+		if (trackIndex > 0) {
+			const newTracks = [...tracks];
+			[newTracks[trackIndex - 1], newTracks[trackIndex]] = [newTracks[trackIndex], newTracks[trackIndex - 1]];
+			onChange(newTracks);
+		}
+	};
+
+	/**
+	 * Handle move track down
+	 */
+	const handleMoveDown = (trackId) => {
+		const trackIndex = tracks.findIndex(track => track.id === trackId);
+		if (trackIndex < tracks.length - 1) {
+			const newTracks = [...tracks];
+			[newTracks[trackIndex], newTracks[trackIndex + 1]] = [newTracks[trackIndex + 1], newTracks[trackIndex]];
+			onChange(newTracks);
+		}
+	};
+
 	return (
 		<div className="fluxwave-playlist-editor">
 			{/* Header */}
@@ -163,6 +187,8 @@ const PlaylistEditor = ({ tracks, onChange }) => {
 				onSelectTrack={setSelectedTrackId}
 				onUpdateArtwork={handleUpdateArtwork}
 				onUpdateTrack={handleUpdateTrack}
+				onMoveUp={handleMoveUp}
+				onMoveDown={handleMoveDown}
 			/>
 
 		</div>

@@ -91,7 +91,10 @@ const AudioPlayer = ({ tracks = [], autoplay = false, loop = false, accentColor 
 	}, [playbackRate]);
 
 	/**
-	 * Load a track
+	 * Load a track with comprehensive error handling and logging
+	 * 
+	 * @param {Object} track - Track object with url, title, etc.
+	 * @returns {Promise<void>} Resolves when track is loaded
 	 */
 	const loadTrack = async (track) => {
 		if (!track || !track.url) return;
