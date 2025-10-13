@@ -8,7 +8,7 @@
 
 import { __ } from '@wordpress/i18n';
 import { useBlockProps, InspectorControls, ColorPalette } from '@wordpress/block-editor';
-import { PanelBody, ToggleControl, Button, __experimentalToggleGroupControl as ToggleGroupControl, __experimentalToggleGroupControlOption as ToggleGroupControlOption } from '@wordpress/components';
+import { PanelBody, ToggleControl, Button, SelectControl } from '@wordpress/components';
 import { useState } from '@wordpress/element';
 import AudioPlayer from './components/AudioPlayer';
 import PlaylistEditor from './components/PlaylistEditor';
@@ -70,26 +70,15 @@ export default function Edit({ attributes, setAttributes }) {
 				</PanelBody>
 
 				<PanelBody title={__('Theme', 'fluxwave')} initialOpen={true}>
-					<ToggleGroupControl
+					<SelectControl
 						label={__('Player Theme', 'fluxwave')}
 						value={attributes.theme || 'light'}
+						options={[
+							{ label: __('Light', 'fluxwave'), value: 'light' },
+							{ label: __('Dark', 'fluxwave'), value: 'dark' }
+						]}
 						onChange={(value) => setAttributes({ theme: value })}
-						__next40pxDefaultSize={true}
-						__nextHasNoMarginBottom={true}
-					>
-						<ToggleGroupControlOption
-							value="light"
-							label={__('Light', 'fluxwave')}
-							__next40pxDefaultSize={true}
-							__nextHasNoMarginBottom={true}
-						/>
-						<ToggleGroupControlOption
-							value="dark"
-							label={__('Dark', 'fluxwave')}
-							__next40pxDefaultSize={true}
-							__nextHasNoMarginBottom={true}
-						/>
-					</ToggleGroupControl>
+					/>
 				</PanelBody>
 
 				<PanelBody title={__('Accent Color', 'fluxwave')} initialOpen={true}>
@@ -118,20 +107,14 @@ export default function Edit({ attributes, setAttributes }) {
 			<div {...blockProps}>
 				{/* View Mode Toggle */}
 				<div className="mb-4 flex items-center justify-between border-b border-gray-200 pb-3">
-					<ToggleGroupControl
+					<SelectControl
 						value={viewMode}
+						options={[
+							{ label: __('Edit Playlist', 'fluxwave'), value: 'editor' },
+							{ label: __('Preview Player', 'fluxwave'), value: 'preview' }
+						]}
 						onChange={setViewMode}
-						isBlock={false}
-						__next40pxDefaultSize={true}
-						__nextHasNoMarginBottom={true}
-					>
-						<ToggleGroupControlOption value="editor" label={__('Edit Playlist', 'fluxwave')} />
-						<ToggleGroupControlOption 
-							value="preview" 
-							label={__('Preview Player', 'fluxwave')} 
-							disabled={tracks.length === 0}
-						/>
-					</ToggleGroupControl>
+					/>
 					
 					{viewMode === 'preview' && (
 						<span className="text-xs text-gray-500">
