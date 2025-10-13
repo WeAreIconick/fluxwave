@@ -112,10 +112,35 @@ const TrackItem = ({
 					? 'bg-indigo-50 border-indigo-300 shadow-sm'
 					: 'bg-white border-gray-200 hover:border-gray-300 hover:shadow-sm'
 			}`}
+			role="listitem"
+			aria-label={`Track ${index + 1}: ${track.title || 'Untitled'} by ${track.artist || 'Unknown Artist'}`}
+			tabIndex="0"
+			onKeyDown={(e) => {
+				// Keyboard navigation for track reordering
+				if (e.key === 'ArrowUp' && !isFirst) {
+					e.preventDefault();
+					e.stopPropagation();
+					onMoveUp(track.id);
+				} else if (e.key === 'ArrowDown' && !isLast) {
+					e.preventDefault();
+					e.stopPropagation();
+					onMoveDown(track.id);
+				} else if (e.key === 'Enter' || e.key === ' ') {
+					e.preventDefault();
+					e.stopPropagation();
+					onSelect(track.id);
+				} else if (e.key === 'Delete' || e.key === 'Backspace') {
+					e.preventDefault();
+					e.stopPropagation();
+					if (window.confirm(__('Are you sure you want to remove this track?', 'fluxwave'))) {
+						onRemove(track.id);
+					}
+				}
+			}}
 		>
 			<div className="flex items-center gap-3 p-3">
 				{/* Reorder Buttons */}
-				<div className="flex-shrink-0 flex flex-col gap-1">
+				<div className="flex-shrink-0 flex flex-col gap-1" role="group" aria-label={__('Track reorder controls', 'fluxwave')}>
 					<Button
 						icon={ArrowUpIcon}
 						size="small"
@@ -124,9 +149,10 @@ const TrackItem = ({
 							onMoveUp(track.id);
 						}}
 						disabled={isFirst}
-						label={__('Move up', 'fluxwave')}
+						label={isFirst ? __('Cannot move up - first track', 'fluxwave') : __('Move track up', 'fluxwave')}
 						showTooltip={true}
-						className="!min-w-0 !w-8 !h-8"
+						className="!min-w-0 !w-11 !h-11"
+						aria-describedby={`track-${track.id}-instructions`}
 					/>
 					<Button
 						icon={ArrowDownIcon}
@@ -136,10 +162,16 @@ const TrackItem = ({
 							onMoveDown(track.id);
 						}}
 						disabled={isLast}
-						label={__('Move down', 'fluxwave')}
+						label={isLast ? __('Cannot move down - last track', 'fluxwave') : __('Move track down', 'fluxwave')}
 						showTooltip={true}
-						className="!min-w-0 !w-8 !h-8"
+						className="!min-w-0 !w-11 !h-11"
+						aria-describedby={`track-${track.id}-instructions`}
 					/>
+				</div>
+				
+				{/* Hidden instructions for screen readers */}
+				<div id={`track-${track.id}-instructions`} className="sr-only">
+					{__('Use arrow keys to reorder tracks, Enter or Space to select, Delete to remove', 'fluxwave')}
 				</div>
 
 				{/* Track Number */}

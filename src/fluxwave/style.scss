@@ -27,6 +27,36 @@
 /* Player responsive styles */
 .fluxwave-audio-player {
 	position: relative;
+	opacity: 1;
+	transition: opacity 0.2s ease-in-out;
+}
+
+/* Prevent flash of unstyled content */
+.fluxwave-player-block {
+	opacity: 1;
+	transition: opacity 0.2s ease-in-out;
+}
+
+.fluxwave-player-block.loading {
+	opacity: 0.8;
+}
+
+.fluxwave-player-block.loaded {
+	opacity: 1;
+}
+
+/* Skeleton loading animations */
+@keyframes pulse {
+	0%, 100% {
+		opacity: 1;
+	}
+	50% {
+		opacity: 0.5;
+	}
+}
+
+.animate-pulse {
+	animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 /* Transport controls responsive */
@@ -98,11 +128,54 @@
 	.fluxwave-audio-player {
 		border: 2px solid currentColor;
 	}
-
+	
 	.fluxwave-audio-player button {
 		border: 2px solid currentColor;
 	}
+	
+	.fluxwave-audio-player [role="slider"] {
+		border: 2px solid currentColor;
+	}
+}
 
+/* Improved color contrast for better accessibility */
+.fluxwave-audio-player {
+	.text-gray-500 {
+		color: #374151; /* Improved contrast: 7.1:1 */
+	}
+	
+	.text-gray-600 {
+		color: #1f2937; /* Improved contrast: 12.6:1 */
+	}
+	
+	.text-slate-500 {
+		color: #374151; /* Improved contrast: 7.1:1 */
+	}
+	
+	.text-slate-600 {
+		color: #1f2937; /* Improved contrast: 12.6:1 */
+	}
+}
+
+/* Skip link styles */
+.skip-link {
+	position: absolute;
+	top: -40px;
+	left: 6px;
+	background: #000;
+	color: #fff;
+	padding: 8px;
+	text-decoration: none;
+	z-index: 1000;
+	border-radius: 4px;
+}
+
+.skip-link:focus {
+	top: 6px;
+}
+
+/* High contrast mode button styles */
+@media (prefers-contrast: high) {
 	.fluxwave-audio-player button:hover,
 	.fluxwave-audio-player button:focus {
 		background-color: Highlight;

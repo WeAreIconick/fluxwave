@@ -12,9 +12,11 @@ import usePlayerStore from '../store/playerStore';
 import TransportControls from './TransportControls';
 import ProgressBar from './ProgressBar';
 import TrackInfo from './TrackInfo';
+import { announceToScreenReader, formatTimeForScreenReader } from '../utils/accessibility';
 
-const AudioPlayer = ({ tracks = [], autoplay = false, loop = false, accentColor = '#06b6d4' }) => {
+const AudioPlayer = ({ tracks = [], autoplay = false, loop = false, accentColor = '#06b6d4', onReady }) => {
 	const [error, setError] = useState(null);
+	const [isInitialized, setIsInitialized] = useState(false);
 	const playerRef = useRef(null);
 	const animationFrameRef = useRef(null);
 	const lastUpdateTime = useRef(0);
@@ -45,6 +47,17 @@ const AudioPlayer = ({ tracks = [], autoplay = false, loop = false, accentColor 
 	useEffect(() => {
 		playerRef.current = new HowlerPlayer();
 
+		// Call onReady callback when player is initialized
+		if (onReady) {
+			// Small delay to ensure DOM is ready
+			setTimeout(() => {
+				setIsInitialized(true);
+				onReady();
+			}, 50);
+		} else {
+			setIsInitialized(true);
+		}
+
 		// Cleanup on unmount
 		return () => {
 			if (animationFrameRef.current) {
@@ -56,7 +69,7 @@ const AudioPlayer = ({ tracks = [], autoplay = false, loop = false, accentColor 
 				playerRef.current = null;
 			}
 		};
-	}, []);
+	}, [onReady]);
 
 	// Set playlist when tracks change
 	useEffect(() => {
@@ -75,6 +88,45 @@ const AudioPlayer = ({ tracks = [], autoplay = false, loop = false, accentColor 
 			loadTrack(playlist[currentTrackIndex]);
 		}
 	}, [currentTrackIndex]);
+
+	// Announce track changes to screen readers
+	useEffect(() => {
+		if (currentTrack) {
+			const trackInfo = `${currentTrack.title || __('Untitled Track', 'fluxwave')}${currentTrack.artist ? ` by ${currentTrack.artist}` : ''}`;
+			announceToScreenReader(
+				__('Now playing:', 'fluxwave') + ' ' + trackInfo,
+				'polite'
+			);
+		}
+	}, [currentTrack]);
+
+	// Announce playback state changes
+	useEffect(() => {
+		if (currentTrack) {
+			const state = isPlaying ? __('Playback started', 'fluxwave') : __('Playback paused', 'fluxwave');
+			announceToScreenReader(state, 'polite');
+		}
+	}, [isPlaying, currentTrack]);
+
+	// Announce errors to screen readers
+	useEffect(() => {
+		if (error) {
+			announceToScreenReader(__('Error:', 'fluxwave') + ' ' + error, 'assertive');
+		}
+	}, [error]);
+
+	// Focus management - focus play button when track changes
+	useEffect(() => {
+		if (currentTrack) {
+			// Small delay to ensure DOM is updated
+			setTimeout(() => {
+				const playButton = document.querySelector('[aria-label*="Play"], [aria-label*="Pause"]');
+				if (playButton) {
+					playButton.focus();
+				}
+			}, 100);
+		}
+	}, [currentTrack]);
 
 	// Update playback time
 	useEffect(() => {
@@ -99,13 +151,19 @@ const AudioPlayer = ({ tracks = [], autoplay = false, loop = false, accentColor 
 	const loadTrack = async (track) => {
 		if (!track || !track.url) return;
 
+		// Prevent concurrent loads
+		if (isLoading) {
+			console.log('Fluxwave: Skipping load - already loading');
+			return;
+		}
+
 		// Clear any previous errors
 		setError(null);
 		setIsLoading(true);
 		setCurrentTrack(track);
 
 		try {
-			// Load into Howler
+			// Load into Howler with better error handling
 			await playerRef.current.load(track.url, {
 				onLoad: () => {
 					const trackDuration = playerRef.current.getDuration();
@@ -368,7 +426,7 @@ const AudioPlayer = ({ tracks = [], autoplay = false, loop = false, accentColor 
 
 	return (
 		<div 
-			className="fluxwave-audio-player w-full" 
+			className={`fluxwave-audio-player w-full ${isInitialized ? 'opacity-100' : 'opacity-0'} transition-opacity duration-300`}
 			style={{ '--accent-color': accentColor }}
 			role="region"
 			aria-label={currentTrack?.title ? `Audio player - ${currentTrack.title}` : 'Audio player'}
@@ -400,19 +458,21 @@ const AudioPlayer = ({ tracks = [], autoplay = false, loop = false, accentColor 
 			</div>
 
 			{/* Transport Controls */}
-			<TransportControls
-				isPlaying={isPlaying}
-				onPlayPause={handlePlayPause}
-				onNext={handleNext}
-				onPrevious={handlePrevious}
-				hasPrevious={hasPrevious}
-				hasNext={hasNext}
-				playbackRate={playbackRate}
-				onPlaybackRateChange={handlePlaybackRateChange}
-				onSkipForward={handleSkipForward}
-				onSkipBackward={handleSkipBackward}
-				accentColor={accentColor}
-			/>
+			<div id="transport-controls" tabIndex="-1">
+				<TransportControls
+					isPlaying={isPlaying}
+					onPlayPause={handlePlayPause}
+					onNext={handleNext}
+					onPrevious={handlePrevious}
+					hasPrevious={hasPrevious}
+					hasNext={hasNext}
+					playbackRate={playbackRate}
+					onPlaybackRateChange={handlePlaybackRateChange}
+					onSkipForward={handleSkipForward}
+					onSkipBackward={handleSkipBackward}
+					accentColor={accentColor}
+				/>
+			</div>
 
 			{/* Loading Overlay */}
 			{isLoading && (

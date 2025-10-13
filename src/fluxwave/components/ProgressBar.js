@@ -82,16 +82,26 @@ const ProgressBar = memo(({ currentTime = 0, duration = 0, onSeek, accentColor =
 					onKeyDown={(e) => {
 						if (e.key === 'ArrowLeft') {
 							e.preventDefault();
-							handleSeek(Math.max(0, currentTime - 5));
+							const newTime = Math.max(0, currentTime - 5);
+							handleSeek(newTime);
 						} else if (e.key === 'ArrowRight') {
 							e.preventDefault();
-							handleSeek(Math.min(duration, currentTime + 5));
+							const newTime = Math.min(duration, currentTime + 5);
+							handleSeek(newTime);
 						} else if (e.key === 'Home') {
 							e.preventDefault();
 							handleSeek(0);
 						} else if (e.key === 'End') {
 							e.preventDefault();
 							handleSeek(duration);
+						} else if (e.key === 'PageUp') {
+							e.preventDefault();
+							const newTime = Math.min(duration, currentTime + 30);
+							handleSeek(newTime);
+						} else if (e.key === 'PageDown') {
+							e.preventDefault();
+							const newTime = Math.max(0, currentTime - 30);
+							handleSeek(newTime);
 						}
 					}}
 				>

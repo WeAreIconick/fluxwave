@@ -56,7 +56,26 @@ const TrackList = memo(({ tracks, onRemove, activeTrackId, onSelectTrack, onUpda
 
 	return (
 		<div className="fluxwave-track-list space-y-2">
-			{tracks.map((track, index) => (
+			{/* Skip link for keyboard users */}
+			<div className="sr-only">
+				<a 
+					href="#transport-controls" 
+					className="skip-link"
+					onClick={(e) => {
+						e.preventDefault();
+						const controls = document.querySelector('#transport-controls');
+						if (controls) {
+							controls.focus();
+							controls.scrollIntoView();
+						}
+					}}
+				>
+					{__('Skip to player controls', 'fluxwave')}
+				</a>
+			</div>
+			
+			<div role="list" aria-label={__('Playlist tracks', 'fluxwave')}>
+				{tracks.map((track, index) => (
 				<TrackItem
 					key={track.id}
 					track={track}
@@ -72,6 +91,7 @@ const TrackList = memo(({ tracks, onRemove, activeTrackId, onSelectTrack, onUpda
 					onMoveDown={onMoveDown}
 				/>
 			))}
+			</div>
 		</div>
 	);
 });

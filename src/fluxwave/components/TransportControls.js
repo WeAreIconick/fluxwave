@@ -187,12 +187,18 @@ const TransportControls = memo(({
 				{/* Speed Control */}
 				<button 
 					type="button" 
-					className="rounded-lg text-xs leading-6 font-semibold px-2 ring-2 ring-inset ring-slate-500 text-slate-500 hover:bg-slate-100 transition-colors"
+					className="rounded-lg text-xs leading-6 font-semibold px-3 py-2 ring-2 ring-inset ring-slate-500 text-slate-500 hover:bg-slate-100 transition-colors min-h-[44px] min-w-[44px]"
 					onClick={cycleSpeed}
-					aria-label={__('Playback speed', 'fluxwave')}
+					aria-label={__('Change playback speed. Current speed:', 'fluxwave') + ' ' + playbackRate + 'x'}
+					aria-describedby="speed-description"
 				>
 					{playbackRate}x
 				</button>
+				
+				{/* Hidden description for screen readers */}
+				<div id="speed-description" className="sr-only">
+					{__('Click to cycle through playback speeds: 0.5x, 0.75x, 1x, 1.25x, 1.5x, 2x', 'fluxwave')}
+				</div>
 			</div>
 		</div>
 	);

@@ -26,6 +26,8 @@ function initPlayers() {
 	const playerBlocks = document.querySelectorAll('.fluxwave-player-block');
 
 	playerBlocks.forEach((block) => {
+		// Add loading class to prevent flash
+		block.classList.add('loading');
 		const configData = block.getAttribute('data-player-config');
 		
 		if (!configData) {
@@ -84,6 +86,11 @@ function initPlayers() {
 					autoplay={config.autoplay === true}
 					loop={config.loop === true}
 					accentColor={config.accentColor || '#06b6d4'}
+					onReady={() => {
+						// Remove loading class and add loaded class for smooth transition
+						block.classList.remove('loading');
+						block.classList.add('loaded');
+					}}
 				/>
 			);
 		} catch (error) {

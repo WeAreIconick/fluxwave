@@ -11,14 +11,61 @@ class HowlerPlayer {
 	constructor() {
 		this.sound = null;
 		this.isDestroyed = false;
+		this.loadPromise = null;
 		
-		// Set a very large HTML5 pool size to prevent exhaustion
-		// This is set once globally for all instances
-		if (typeof Howler !== 'undefined') {
-			Howler.html5PoolSize = 100;
-			// Also unload all inactive sounds periodically
+		// Initialize global Howler settings only once
+		if (typeof Howler !== 'undefined' && !HowlerPlayer._initialized) {
+			HowlerPlayer._initialized = true;
+			
+			// Increase HTML5 pool size significantly
+			Howler.html5PoolSize = 200;
+			
+			// Enable auto-unlock for better resource management
 			Howler.autoUnlock = true;
+			
+			// Set up periodic cleanup of inactive sounds
+			HowlerPlayer._setupPeriodicCleanup();
+			
+			// Monitor pool usage
+			HowlerPlayer._setupPoolMonitoring();
 		}
+	}
+	
+	/**
+	 * Set up periodic cleanup of inactive sounds
+	 * @private
+	 */
+	static _setupPeriodicCleanup() {
+		// Clean up inactive sounds every 30 seconds
+		setInterval(() => {
+			if (typeof Howler !== 'undefined') {
+				// Force cleanup of all inactive sounds
+				Howler._unload();
+			}
+		}, 30000);
+	}
+	
+	/**
+	 * Monitor HTML5 pool usage and log warnings
+	 * @private
+	 */
+	static _setupPoolMonitoring() {
+		let lastPoolSize = 0;
+		
+		setInterval(() => {
+			if (typeof Howler !== 'undefined' && Howler._html5Pool) {
+				const currentPoolSize = Howler._html5Pool.length;
+				if (currentPoolSize !== lastPoolSize) {
+					console.log(`Fluxwave: HTML5 Audio Pool Size: ${currentPoolSize}/${Howler.html5PoolSize}`);
+					lastPoolSize = currentPoolSize;
+					
+					// Warning when pool is getting full
+					if (currentPoolSize > Howler.html5PoolSize * 0.8) {
+						console.warn(`Fluxwave: HTML5 Audio Pool is ${Math.round((currentPoolSize / Howler.html5PoolSize) * 100)}% full`);
+					}
+				}
+			}
+		}, 10000);
 	}
 
 	/**
@@ -49,7 +96,12 @@ class HowlerPlayer {
 	 * @throws {Error} If URL is invalid or player is destroyed
 	 */
 	load(url, callbacks = {}) {
-		return new Promise((resolve, reject) => {
+		// Cancel any existing load operation
+		if (this.loadPromise) {
+			this.loadPromise.cancel?.();
+		}
+
+		this.loadPromise = new Promise((resolve, reject) => {
 			if (this.isDestroyed) {
 				reject(new Error('Player has been destroyed'));
 				return;
@@ -63,19 +115,18 @@ class HowlerPlayer {
 			}
 
 			// Clean up existing sound completely and immediately
-			if (this.sound) {
-				try {
-					// Stop all playback
-					this.sound.stop();
-					// Unload and free resources immediately
-					this.sound.unload();
-				} catch (error) {
-					console.warn('Error cleaning up previous sound:', error);
+			this._cleanupCurrentSound();
+
+			// Check pool availability before creating new sound
+			if (typeof Howler !== 'undefined' && Howler._html5Pool) {
+				const poolUsage = Howler._html5Pool.length;
+				if (poolUsage >= Howler.html5PoolSize * 0.9) {
+					console.warn('Fluxwave: HTML5 Audio Pool nearly exhausted, forcing cleanup');
+					Howler._unload();
 				}
-				this.sound = null;
 			}
 
-			// Create new Howl instance immediately (no delay)
+			// Create new Howl instance with better resource management
 			try {
 				this.sound = new Howl({
 					src: [url],
@@ -115,6 +166,26 @@ class HowlerPlayer {
 				reject(error);
 			}
 		});
+
+		return this.loadPromise;
+	}
+
+	/**
+	 * Clean up current sound instance
+	 * @private
+	 */
+	_cleanupCurrentSound() {
+		if (this.sound) {
+			try {
+				// Stop all playback
+				this.sound.stop();
+				// Unload and free resources immediately
+				this.sound.unload();
+			} catch (error) {
+				console.warn('Error cleaning up previous sound:', error);
+			}
+			this.sound = null;
+		}
 	}
 
 	/**
@@ -247,18 +318,23 @@ class HowlerPlayer {
 	destroy() {
 		this.isDestroyed = true;
 		
-		if (this.sound) {
+		// Cancel any pending load operation
+		if (this.loadPromise) {
+			this.loadPromise.cancel?.();
+			this.loadPromise = null;
+		}
+		
+		// Clean up current sound
+		this._cleanupCurrentSound();
+		
+		// Force cleanup of any remaining resources
+		if (typeof Howler !== 'undefined') {
 			try {
-				// Stop playback first
-				if (this.sound.playing()) {
-					this.sound.stop();
-				}
-				// Unload to free resources
-				this.sound.unload();
+				// Unload all sounds to free HTML5 audio elements
+				Howler._unload();
 			} catch (error) {
-				console.warn('Error during sound cleanup:', error);
+				console.warn('Error during global Howler cleanup:', error);
 			}
-			this.sound = null;
 		}
 	}
 }
