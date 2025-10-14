@@ -103,6 +103,16 @@
 	touch-action: none; /* For better drag performance on mobile */
 }
 
+/* Remove focus outline from track items */
+.fluxwave-track-item:focus,
+.fluxwave-track-item:focus-visible,
+.fluxwave-track-item:active,
+.fluxwave-track-item:focus-within {
+	outline: none !important;
+	box-shadow: none !important;
+	border-color: inherit !important;
+}
+
 @media (max-width: 640px) {
 	.fluxwave-track-item {
 		padding: 0.5rem;
@@ -123,7 +133,8 @@
 }
 
 /* Focus styles for accessibility - uses accent color */
-.fluxwave-audio-player button:focus-visible {
+.fluxwave-transport-controls button:focus-visible,
+.fluxwave-audio-player button[type="button"]:focus-visible:not(.fluxwave-track-item *) {
 	outline: 3px solid var(--accent-color, #06b6d4);
 	outline-offset: 2px;
 	border-radius: 0.25rem;

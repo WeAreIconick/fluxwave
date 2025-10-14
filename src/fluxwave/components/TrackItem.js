@@ -115,7 +115,7 @@ const TrackItem = ({
 
 	return (
 		<div
-			className={`fluxwave-track-item rounded-lg border transition-all ${
+			className={`fluxwave-track-item rounded-lg border transition-all focus:outline-none focus:ring-0 focus:border-current active:outline-none active:ring-0 ${
 				isActive
 					? 'bg-indigo-50 border-indigo-300 shadow-sm'
 					: 'bg-white border-gray-200 hover:border-gray-300 hover:shadow-sm'

@@ -142,10 +142,12 @@ const TransportControls = memo(({
 				onClick={onPlayPause}
 				onMouseEnter={(e) => {
 					e.currentTarget.style.backgroundColor = accentColor;
+					e.currentTarget.style.borderColor = accentColor;
 					e.currentTarget.style.color = 'white';
 				}}
 				onMouseLeave={(e) => {
 					e.currentTarget.style.backgroundColor = '';
+					e.currentTarget.style.borderColor = '';
 					e.currentTarget.style.color = '';
 				}}
 			>
