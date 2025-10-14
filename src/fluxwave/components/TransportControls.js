@@ -196,7 +196,7 @@ const TransportControls = memo(({
 				{/* Speed Control */}
 				<button 
 					type="button" 
-					className={`rounded-lg text-xs leading-6 font-semibold px-3 py-2 ring-2 ring-inset transition-colors min-h-[44px] min-w-[44px] ${theme === 'dark' ? 'ring-white text-white hover:bg-gray-800' : 'ring-gray-600 text-gray-600 hover:bg-gray-200'}`}
+					className={`rounded-lg text-xs leading-6 font-semibold px-3 py-2 border-2 transition-colors min-h-[44px] min-w-[44px] ${theme === 'dark' ? 'border-white text-white hover:bg-gray-800' : 'border-gray-300 text-gray-600 hover:bg-gray-200'}`}
 					onClick={cycleSpeed}
 					aria-label={__('Change playback speed. Current speed:', 'fluxwave') + ' ' + playbackRate + 'x'}
 					aria-describedby="speed-description"
