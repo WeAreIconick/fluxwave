@@ -1,54 +1,54 @@
 /**
  * Webpack Configuration Overrides for Performance Optimization
- * 
- * @package Fluxwave
+ *
+ * @package
  */
 
-const defaultConfig = require('@wordpress/scripts/config/webpack.config');
-const TerserPlugin = require('terser-webpack-plugin');
-const DependencyExtractionWebpackPlugin = require('@wordpress/dependency-extraction-webpack-plugin');
+const defaultConfig = require( '@wordpress/scripts/config/webpack.config' );
+const TerserPlugin = require( 'terser-webpack-plugin' );
+const DependencyExtractionWebpackPlugin = require( '@wordpress/dependency-extraction-webpack-plugin' );
 
 module.exports = {
 	...defaultConfig,
-	plugins: defaultConfig.plugins.map((plugin) => {
+	plugins: defaultConfig.plugins.map( ( plugin ) => {
 		// Replace the default DependencyExtractionWebpackPlugin with a configured one
-		if (plugin.constructor.name === 'DependencyExtractionWebpackPlugin') {
-			return new DependencyExtractionWebpackPlugin({
-				requestToExternal(request) {
+		if ( plugin.constructor.name === 'DependencyExtractionWebpackPlugin' ) {
+			return new DependencyExtractionWebpackPlugin( {
+				requestToExternal( request ) {
 					// Force React and ReactDOM to use WordPress globals
-					if (request === 'react') {
+					if ( request === 'react' ) {
 						return 'React';
 					}
-					if (request === 'react-dom') {
+					if ( request === 'react-dom' ) {
 						return 'ReactDOM';
 					}
 					// Let the plugin handle other WordPress dependencies
 					return undefined;
 				},
-				requestToHandle(request) {
+				requestToHandle( request ) {
 					// Map React/ReactDOM to WordPress script handles
-					if (request === 'react') {
+					if ( request === 'react' ) {
 						return 'react';
 					}
-					if (request === 'react-dom') {
+					if ( request === 'react-dom' ) {
 						return 'react-dom';
 					}
 					return undefined;
 				},
-			});
+			} );
 		}
 		return plugin;
-	}),
+	} ),
 	optimization: {
 		...defaultConfig.optimization,
 		minimize: true,
 		minimizer: [
-			new TerserPlugin({
+			new TerserPlugin( {
 				terserOptions: {
 					compress: {
 						drop_console: false, // Keep console for debugging
 						drop_debugger: true,
-						pure_funcs: ['console.debug'], // Remove console.debug in production
+						pure_funcs: [ 'console.debug' ], // Remove console.debug in production
 						unused: true, // Remove unused code
 						dead_code: true, // Remove dead code
 					},
@@ -61,7 +61,7 @@ module.exports = {
 					},
 				},
 				extractComments: false,
-			}),
+			} ),
 		],
 		// IMPORTANT: Code splitting is disabled because WordPress blocks-manifest registration
 		// doesn't automatically handle split chunks. All dependencies must be bundled into
@@ -78,4 +78,3 @@ module.exports = {
 		maxAssetSize: 450000, // 450KB
 	},
 };
-

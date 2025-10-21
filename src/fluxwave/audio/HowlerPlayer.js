@@ -1,34 +1,36 @@
 /**
  * Howler.js Audio Player Wrapper
  * Provides a clean interface for audio playback
- * 
- * @package Fluxwave
+ *
+ * @package
  */
 
 import { Howl, Howler } from 'howler';
 
 // Global singleton pattern to prevent multiple instances
-let globalHowlerInstance = null;
 
 // Initialize global Howler settings immediately when module loads
-if (typeof Howler !== 'undefined') {
+if ( typeof Howler !== 'undefined' ) {
 	// Set a reasonable HTML5 pool size
 	Howler.html5PoolSize = 50; // Reasonable size, not too large
-	
+
 	// Enable auto-unlock for better resource management
 	Howler.autoUnlock = true;
-	
+
 	// Force cleanup of all inactive sounds immediately
-	if (typeof Howler._unload === 'function') {
+	if ( typeof Howler._unload === 'function' ) {
 		Howler._unload();
 	}
-	
+
 	// Set up periodic cleanup every 30 seconds
-	setInterval(() => {
-		if (typeof Howler !== 'undefined' && typeof Howler._unload === 'function') {
+	setInterval( () => {
+		if (
+			typeof Howler !== 'undefined' &&
+			typeof Howler._unload === 'function'
+		) {
 			Howler._unload();
 		}
-	}, 30000);
+	}, 30000 );
 }
 
 class HowlerPlayer {
@@ -37,9 +39,9 @@ class HowlerPlayer {
 		this.isDestroyed = false;
 		this.loadPromise = null;
 		this.currentUrl = null;
-		
+
 		// Ensure global settings are applied (redundant but safe)
-		if (typeof Howler !== 'undefined') {
+		if ( typeof Howler !== 'undefined' ) {
 			Howler.html5PoolSize = 50;
 			Howler.autoUnlock = true;
 		}
@@ -48,15 +50,15 @@ class HowlerPlayer {
 	/**
 	 * Validate URL for security
 	 * @param {string} url - URL to validate
-	 * @returns {boolean}
+	 * @return {boolean} True if URL is valid and safe, false otherwise
 	 */
-	isValidUrl(url) {
-		if (!url || typeof url !== 'string') {
+	isValidUrl( url ) {
+		if ( ! url || typeof url !== 'string' ) {
 			return false;
 		}
-		
+
 		try {
-			const urlObj = new URL(url, window.location.origin);
+			const urlObj = new URL( url, window.location.origin );
 			// Only allow http(s) protocols
 			return urlObj.protocol === 'http:' || urlObj.protocol === 'https:';
 		} catch {
@@ -66,34 +68,35 @@ class HowlerPlayer {
 
 	/**
 	 * Load an audio file with comprehensive error handling
-	 * 
-	 * @param {string} url - Audio file URL
+	 *
+	 * @param {string} url       - Audio file URL
 	 * @param {Object} callbacks - Event callbacks
-	 * @returns {Promise<boolean>} Resolves when audio is loaded
+	 * @return {Promise<boolean>} Resolves when audio is loaded
 	 * @throws {Error} If URL is invalid or player is destroyed
 	 */
-	load(url, callbacks = {}) {
+	load( url, callbacks = {} ) {
 		// Cancel any existing load operation
-		if (this.loadPromise) {
+		if ( this.loadPromise ) {
 			this.loadPromise.cancel?.();
 		}
 
-		this.loadPromise = new Promise((resolve, reject) => {
-			if (this.isDestroyed) {
-				reject(new Error('Player has been destroyed'));
+		this.loadPromise = new Promise( ( resolve, reject ) => {
+			if ( this.isDestroyed ) {
+				reject( new Error( 'Player has been destroyed' ) );
 				return;
 			}
 
 			// Security: Validate URL
-			if (!this.isValidUrl(url)) {
-				reject(new Error('Invalid audio URL'));
-				console.error('Fluxwave: Invalid or unsafe URL provided:', url);
+			if ( ! this.isValidUrl( url ) ) {
+				reject( new Error( 'Invalid audio URL' ) );
 				return;
 			}
 
 			// If we already have a sound for this URL, reuse it
-			if (this.sound && this.currentUrl === url) {
-				if (callbacks.onLoad) callbacks.onLoad();
+			if ( this.sound && this.currentUrl === url ) {
+				if ( callbacks.onLoad ) {
+					callbacks.onLoad();
+				}
 				resolve();
 				return;
 			}
@@ -103,57 +106,80 @@ class HowlerPlayer {
 
 			// Create new Howl instance with proper resource management
 			try {
-				this.sound = new Howl({
-					src: [url],
+				this.sound = new Howl( {
+					src: [ url ],
 					html5: false, // Use Web Audio API instead of HTML5 to avoid pool issues
 					preload: true, // Preload metadata
-					format: ['mp3', 'aac', 'opus', 'webm', 'ogg', 'wav', 'flac'],
+					format: [
+						'mp3',
+						'aac',
+						'opus',
+						'webm',
+						'ogg',
+						'wav',
+						'flac',
+					],
 					pool: 1, // Limit to 1 instance per Howl
 					onload: () => {
-						if (!this.isDestroyed) {
+						if ( ! this.isDestroyed ) {
 							this.currentUrl = url;
-							if (callbacks.onLoad) callbacks.onLoad();
+							if ( callbacks.onLoad ) {
+								callbacks.onLoad();
+							}
 							resolve();
 						}
 					},
-					onloaderror: (id, error) => {
-						console.error('Howler load error:', error);
+					onloaderror: ( id, error ) => {
 						// Provide more specific error messages
 						let errorMessage = 'Failed to load audio file';
-						if (error && typeof error === 'string') {
-							if (error.includes('Decoding audio data failed')) {
-								errorMessage = 'Audio file format not supported or corrupted';
-							} else if (error.includes('404')) {
+						if ( error && typeof error === 'string' ) {
+							if (
+								error.includes( 'Decoding audio data failed' )
+							) {
+								errorMessage =
+									'Audio file format not supported or corrupted';
+							} else if ( error.includes( '404' ) ) {
 								errorMessage = 'Audio file not found';
-							} else if (error.includes('403')) {
+							} else if ( error.includes( '403' ) ) {
 								errorMessage = 'Access denied to audio file';
 							}
 						}
-						const errorObj = new Error(errorMessage);
-						if (callbacks.onError) callbacks.onError(errorObj);
-						reject(errorObj);
+						const errorObj = new Error( errorMessage );
+						if ( callbacks.onError ) {
+							callbacks.onError( errorObj );
+						}
+						reject( errorObj );
 					},
 					onplay: () => {
-						if (!this.isDestroyed && callbacks.onPlay) callbacks.onPlay();
+						if ( ! this.isDestroyed && callbacks.onPlay ) {
+							callbacks.onPlay();
+						}
 					},
 					onpause: () => {
-						if (!this.isDestroyed && callbacks.onPause) callbacks.onPause();
+						if ( ! this.isDestroyed && callbacks.onPause ) {
+							callbacks.onPause();
+						}
 					},
 					onend: () => {
-						if (!this.isDestroyed && callbacks.onEnd) callbacks.onEnd();
+						if ( ! this.isDestroyed && callbacks.onEnd ) {
+							callbacks.onEnd();
+						}
 					},
 					onstop: () => {
-						if (!this.isDestroyed && callbacks.onStop) callbacks.onStop();
+						if ( ! this.isDestroyed && callbacks.onStop ) {
+							callbacks.onStop();
+						}
 					},
 					onseek: () => {
-						if (!this.isDestroyed && callbacks.onSeek) callbacks.onSeek();
+						if ( ! this.isDestroyed && callbacks.onSeek ) {
+							callbacks.onSeek();
+						}
 					},
-				});
-			} catch (error) {
-				console.error('Error creating Howl:', error);
-				reject(error);
+				} );
+			} catch ( error ) {
+				reject( error );
 			}
-		});
+		} );
 
 		return this.loadPromise;
 	}
@@ -163,14 +189,14 @@ class HowlerPlayer {
 	 * @private
 	 */
 	_cleanupCurrentSound() {
-		if (this.sound) {
+		if ( this.sound ) {
 			try {
 				// Stop all playback
 				this.sound.stop();
 				// Unload and free resources immediately
 				this.sound.unload();
-			} catch (error) {
-				console.warn('Error cleaning up previous sound:', error);
+			} catch ( error ) {
+				// Silent cleanup error
 			}
 			this.sound = null;
 			this.currentUrl = null;
@@ -181,7 +207,7 @@ class HowlerPlayer {
 	 * Play audio
 	 */
 	play() {
-		if (this.sound) {
+		if ( this.sound ) {
 			this.sound.play();
 		}
 	}
@@ -190,7 +216,7 @@ class HowlerPlayer {
 	 * Pause audio
 	 */
 	pause() {
-		if (this.sound) {
+		if ( this.sound ) {
 			this.sound.pause();
 		}
 	}
@@ -199,7 +225,7 @@ class HowlerPlayer {
 	 * Stop audio
 	 */
 	stop() {
-		if (this.sound) {
+		if ( this.sound ) {
 			this.sound.stop();
 		}
 	}
@@ -208,8 +234,8 @@ class HowlerPlayer {
 	 * Toggle play/pause
 	 */
 	toggle() {
-		if (this.sound) {
-			if (this.sound.playing()) {
+		if ( this.sound ) {
+			if ( this.sound.playing() ) {
 				this.pause();
 			} else {
 				this.play();
@@ -219,43 +245,47 @@ class HowlerPlayer {
 
 	/**
 	 * Seek to position (in seconds)
-	 * 
+	 *
 	 * @param {number} seconds - Position in seconds
 	 */
-	seek(seconds) {
-		if (this.sound && !isNaN(seconds) && isFinite(seconds)) {
-			this.sound.seek(Math.max(0, seconds));
+	seek( seconds ) {
+		if ( this.sound && ! isNaN( seconds ) && isFinite( seconds ) ) {
+			this.sound.seek( Math.max( 0, seconds ) );
 		}
 	}
 
 	/**
 	 * Get current playback position (in seconds)
-	 * 
-	 * @returns {number} Current position
+	 *
+	 * @return {number} Current position
 	 */
 	getCurrentTime() {
-		if (!this.sound) return 0;
-		
+		if ( ! this.sound ) {
+			return 0;
+		}
+
 		const time = this.sound.seek();
-		return (!isNaN(time) && isFinite(time)) ? time : 0;
+		return ! isNaN( time ) && isFinite( time ) ? time : 0;
 	}
 
 	/**
 	 * Get total duration (in seconds)
-	 * 
-	 * @returns {number} Duration
+	 *
+	 * @return {number} Duration
 	 */
 	getDuration() {
-		if (!this.sound) return 0;
-		
+		if ( ! this.sound ) {
+			return 0;
+		}
+
 		const dur = this.sound.duration();
-		return (!isNaN(dur) && isFinite(dur)) ? dur : 0;
+		return ! isNaN( dur ) && isFinite( dur ) ? dur : 0;
 	}
 
 	/**
 	 * Check if audio is playing
-	 * 
-	 * @returns {boolean}
+	 *
+	 * @return {boolean} True if audio is currently playing, false otherwise
 	 */
 	isPlaying() {
 		return this.sound ? this.sound.playing() : false;
@@ -263,19 +293,19 @@ class HowlerPlayer {
 
 	/**
 	 * Set volume (0-1)
-	 * 
+	 *
 	 * @param {number} volume - Volume level
 	 */
-	setVolume(volume) {
-		if (this.sound && !isNaN(volume)) {
-			this.sound.volume(Math.max(0, Math.min(1, volume)));
+	setVolume( volume ) {
+		if ( this.sound && ! isNaN( volume ) ) {
+			this.sound.volume( Math.max( 0, Math.min( 1, volume ) ) );
 		}
 	}
 
 	/**
 	 * Get current volume (0-1)
-	 * 
-	 * @returns {number} Current volume
+	 *
+	 * @return {number} Current volume
 	 */
 	getVolume() {
 		return this.sound ? this.sound.volume() : 1;
@@ -283,19 +313,19 @@ class HowlerPlayer {
 
 	/**
 	 * Set playback rate (0.5-2.0)
-	 * 
+	 *
 	 * @param {number} rate - Playback rate
 	 */
-	setRate(rate) {
-		if (this.sound && !isNaN(rate)) {
-			this.sound.rate(Math.max(0.5, Math.min(2, rate)));
+	setRate( rate ) {
+		if ( this.sound && ! isNaN( rate ) ) {
+			this.sound.rate( Math.max( 0.5, Math.min( 2, rate ) ) );
 		}
 	}
 
 	/**
 	 * Get playback rate
-	 * 
-	 * @returns {number} Current rate
+	 *
+	 * @return {number} Current rate
 	 */
 	getRate() {
 		return this.sound ? this.sound.rate() : 1;
@@ -306,25 +336,25 @@ class HowlerPlayer {
 	 */
 	destroy() {
 		this.isDestroyed = true;
-		
+
 		// Cancel any pending load operation
-		if (this.loadPromise) {
+		if ( this.loadPromise ) {
 			this.loadPromise.cancel?.();
 			this.loadPromise = null;
 		}
-		
+
 		// Clean up current sound
 		this._cleanupCurrentSound();
-		
+
 		// Force cleanup of any remaining resources
-		if (typeof Howler !== 'undefined') {
+		if ( typeof Howler !== 'undefined' ) {
 			try {
 				// Only call _unload if it exists
-				if (typeof Howler._unload === 'function') {
+				if ( typeof Howler._unload === 'function' ) {
 					Howler._unload();
 				}
-			} catch (error) {
-				console.warn('Error during global Howler cleanup:', error);
+			} catch ( error ) {
+				// Silent cleanup error
 			}
 		}
 	}

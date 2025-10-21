@@ -7,7 +7,7 @@
 	"category": "media",
 	"icon": "format-audio",
 	"description": "A modern audio player with playlist management and playback controls.",
-	"keywords": ["audio", "music", "player", "playlist"],
+	"keywords": [ "audio", "music", "player", "playlist" ],
 	"example": {},
 	"attributes": {
 		"tracks": {

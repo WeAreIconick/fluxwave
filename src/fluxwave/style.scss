@@ -30,11 +30,34 @@
 	opacity: 1;
 	transition: opacity 0.2s ease-in-out;
 	border-radius: 1rem;
-	background: white;
+	background: #fff;
 	overflow: hidden;
 	padding: 1.5rem; /* Add more padding all around */
-	
+
 	/* Theme support - now handled by Tailwind dark: classes */
+
+	/* WCAG AA minimum contrast ratios */
+	--text-primary: #0f172a; /* slate-900 */
+	--text-secondary: #64748b; /* slate-500 */
+	--bg-primary: #fff;
+	--bg-secondary: #f8fafc; /* slate-50 */
+
+	/* Improved color contrast for better accessibility */
+	.text-gray-500 {
+		color: #374151; /* Improved contrast: 7.1:1 */
+	}
+
+	.text-gray-600 {
+		color: #1f2937; /* Improved contrast: 12.6:1 */
+	}
+
+	.text-slate-500 {
+		color: #374151; /* Improved contrast: 7.1:1 */
+	}
+
+	.text-slate-600 {
+		color: #1f2937; /* Improved contrast: 12.6:1 */
+	}
 }
 
 /* Remove dotted border from abbr elements */
@@ -59,9 +82,12 @@
 
 /* Skeleton loading animations */
 @keyframes pulse {
-	0%, 100% {
+
+	0%,
+	100% {
 		opacity: 1;
 	}
+
 	50% {
 		opacity: 0.5;
 	}
@@ -80,6 +106,7 @@
 }
 
 @media (max-width: 640px) {
+
 	.fluxwave-transport-controls {
 		flex-direction: column;
 		gap: 0.75rem;
@@ -114,6 +141,7 @@
 }
 
 @media (max-width: 640px) {
+
 	.fluxwave-track-item {
 		padding: 0.5rem;
 		font-size: 0.875rem;
@@ -148,37 +176,20 @@
 
 /* High contrast mode support for accessibility */
 @media (prefers-contrast: high) {
+
 	.fluxwave-audio-player {
-		border: 2px solid currentColor;
+		border: 2px solid currentcolor;
 	}
-	
+
 	.fluxwave-audio-player button {
-		border: 2px solid currentColor;
+		border: 2px solid currentcolor;
 	}
-	
+
 	.fluxwave-audio-player [role="slider"] {
-		border: 2px solid currentColor;
+		border: 2px solid currentcolor;
 	}
 }
 
-/* Improved color contrast for better accessibility */
-.fluxwave-audio-player {
-	.text-gray-500 {
-		color: #374151; /* Improved contrast: 7.1:1 */
-	}
-	
-	.text-gray-600 {
-		color: #1f2937; /* Improved contrast: 12.6:1 */
-	}
-	
-	.text-slate-500 {
-		color: #374151; /* Improved contrast: 7.1:1 */
-	}
-	
-	.text-slate-600 {
-		color: #1f2937; /* Improved contrast: 12.6:1 */
-	}
-}
 
 /* Skip link styles */
 .skip-link {
@@ -199,6 +210,7 @@
 
 /* High contrast mode button styles */
 @media (prefers-contrast: high) {
+
 	.fluxwave-audio-player button:hover,
 	.fluxwave-audio-player button:focus {
 		background-color: Highlight;
@@ -208,18 +220,10 @@
 
 /* Reduced motion support for accessibility */
 @media (prefers-reduced-motion: reduce) {
+
 	.fluxwave-audio-player * {
 		animation-duration: 0.01ms !important;
 		animation-iteration-count: 1 !important;
 		transition-duration: 0.01ms !important;
 	}
-}
-
-/* Ensure sufficient color contrast */
-.fluxwave-audio-player {
-	/* WCAG AA minimum contrast ratios */
-	--text-primary: #0f172a; /* slate-900 */
-	--text-secondary: #64748b; /* slate-500 */
-	--bg-primary: #ffffff;
-	--bg-secondary: #f8fafc; /* slate-50 */
 }
