@@ -34,6 +34,11 @@ define( 'FLUXWAVE_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
  * @return void
  */
 function fluxwave_register_block_types() {
+	// Check if build directory exists
+	if ( ! file_exists( __DIR__ . '/build/blocks-manifest.php' ) ) {
+		return;
+	}
+
 	/**
 	 * Registers the block(s) metadata from the `blocks-manifest.php` and registers the block type(s)
 	 * based on the registered block metadata.
@@ -56,15 +61,27 @@ function fluxwave_register_block_types() {
 	if ( function_exists( 'wp_register_block_metadata_collection' ) ) {
 		wp_register_block_metadata_collection( __DIR__ . '/build', __DIR__ . '/build/blocks-manifest.php' );
 	}
+	
 	/**
 	 * Registers the block type(s) in the `blocks-manifest.php` file.
 	 *
 	 * @see https://developer.wordpress.org/reference/functions/register_block_type/
 	 */
-	$manifest_data = require __DIR__ . '/build/blocks-manifest.php';
-	foreach ( array_keys( $manifest_data ) as $block_type ) {
-		$registered = register_block_type( __DIR__ . "/build/{$block_type}" );
-		// Block registration completed
+	try {
+		$manifest_data = require __DIR__ . '/build/blocks-manifest.php';
+		if ( is_array( $manifest_data ) ) {
+			foreach ( array_keys( $manifest_data ) as $block_type ) {
+				if ( file_exists( __DIR__ . "/build/{$block_type}" ) ) {
+					$registered = register_block_type( __DIR__ . "/build/{$block_type}" );
+					// Block registration completed
+				}
+			}
+		}
+	} catch ( Exception $e ) {
+		// Silent fail to prevent critical errors
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			error_log( 'Fluxwave block registration error: ' . $e->getMessage() );
+		}
 	}
 }
 add_action( 'init', 'fluxwave_register_block_types' );
@@ -78,22 +95,33 @@ add_action( 'init', 'fluxwave_register_block_types' );
  */
 function fluxwave_add_admin_nonce_script() {
 	if ( is_admin() && current_user_can( 'edit_posts' ) ) {
-		wp_add_inline_script(
-			'wp-blocks',
-			'window.fluxwaveNonce = ' . wp_json_encode( wp_create_nonce( 'fluxwave_admin' ) ) . ';',
-			'before'
-		);
+		try {
+			wp_add_inline_script(
+				'wp-blocks',
+				'window.fluxwaveNonce = ' . wp_json_encode( wp_create_nonce( 'fluxwave_admin' ) ) . ';',
+				'before'
+			);
+		} catch ( Exception $e ) {
+			// Silent fail to prevent critical errors
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( 'Fluxwave admin script error: ' . $e->getMessage() );
+			}
+		}
 	}
 }
 add_action( 'admin_enqueue_scripts', 'fluxwave_add_admin_nonce_script' );
 
 // Load custom post types
-require_once FLUXWAVE_PLUGIN_DIR . 'includes/post-types.php';
+if ( file_exists( FLUXWAVE_PLUGIN_DIR . 'includes/post-types.php' ) ) {
+	require_once FLUXWAVE_PLUGIN_DIR . 'includes/post-types.php';
+}
 
 // Load REST API endpoints
-require_once FLUXWAVE_PLUGIN_DIR . 'includes/rest-api.php';
+if ( file_exists( FLUXWAVE_PLUGIN_DIR . 'includes/rest-api.php' ) ) {
+	require_once FLUXWAVE_PLUGIN_DIR . 'includes/rest-api.php';
+}
 
 // Load unit tests in debug mode
-if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+if ( defined( 'WP_DEBUG' ) && WP_DEBUG && file_exists( FLUXWAVE_PLUGIN_DIR . 'tests/test-fluxwave.php' ) ) {
 	require_once FLUXWAVE_PLUGIN_DIR . 'tests/test-fluxwave.php';
 }

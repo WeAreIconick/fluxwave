@@ -979,3 +979,16 @@ function fluxwave_get_security_stats() {
 	
 	return $stats;
 }
+
+// Add error handling for REST API registration
+function fluxwave_safe_register_rest_routes() {
+	try {
+		fluxwave_register_rest_routes();
+	} catch ( Exception $e ) {
+		// Silent fail to prevent critical errors
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			error_log( 'Fluxwave REST API registration error: ' . $e->getMessage() );
+		}
+	}
+}
+add_action( 'rest_api_init', 'fluxwave_safe_register_rest_routes' );
