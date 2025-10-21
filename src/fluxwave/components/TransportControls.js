@@ -27,7 +27,10 @@ const TransportControls = memo(
 		const speedOptions = [ 0.5, 0.75, 1, 1.25, 1.5, 2 ];
 
 		const cycleSpeed = () => {
-			const currentIndex = speedOptions.indexOf( playbackRate );
+			// Find the closest speed option to current playback rate
+			const currentIndex = speedOptions.findIndex( ( speed ) => 
+				Math.abs( speed - playbackRate ) < 0.01
+			);
 			const nextIndex = ( currentIndex + 1 ) % speedOptions.length;
 			onPlaybackRateChange( speedOptions[ nextIndex ] );
 		};

@@ -51,6 +51,7 @@ const AudioPlayer = ( {
 	const setIsLoading = usePlayerStore( ( state ) => state.setIsLoading );
 	const setCurrentTime = usePlayerStore( ( state ) => state.setCurrentTime );
 	const setDuration = usePlayerStore( ( state ) => state.setDuration );
+	const setPlaybackRate = usePlayerStore( ( state ) => state.setPlaybackRate );
 	const setPlaylist = usePlayerStore( ( state ) => state.setPlaylist );
 	const nextTrack = usePlayerStore( ( state ) => state.nextTrack );
 	const previousTrack = usePlayerStore( ( state ) => state.previousTrack );
@@ -350,7 +351,9 @@ const AudioPlayer = ( {
 		if ( playerRef.current ) {
 			playerRef.current.setRate( rate );
 		}
-	}, [] );
+		// Update the store with the new playback rate
+		setPlaybackRate( rate );
+	}, [ setPlaybackRate ] );
 
 	/**
 	 * Handle next track - memoized for performance
